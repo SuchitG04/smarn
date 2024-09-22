@@ -10,6 +10,8 @@ filename="screenshot_${timestamp}.png"
 
 filepath="$SCREENSHOT_DIR/$filename"
 
-scrot "$filepath"
+flameshot screen -p "$SCREENSHOT_DIR"
+
+mv "$SCREENSHOT_DIR/Screenshot.png" "$filepath"
 
 echo "Screenshot saved: $filepath"
