@@ -1,6 +1,8 @@
 #!/bin/bash
 
-save_dir=~/smarn/smarn_screenshots
+project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+save_dir="${project_dir}/smarn_screenshots"
 
 if [ ! -d "$save_dir" ]; then
     mkdir -p "$save_dir"
@@ -19,7 +21,7 @@ get_display_server() {
 take_screenshot() {
     display_server=$(get_display_server)
     current_time=$(date +"%Y-%m-%d_%H-%M-%S")
-    screenshot_file="${save_dir}/smarn_${current_time}.png"
+    screenshot_file="${save_dir}/screenshot_smarn_${current_time}.png"
 
     if [ "$display_server" = "w" ]; then
         if command -v grim &> /dev/null; then
