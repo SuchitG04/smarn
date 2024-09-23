@@ -1,48 +1,61 @@
 import os
 import subprocess
+from PIL import Image
 from datetime import datetime
+import time
 
-project_dir = os.path.dirname(os.path.abspath(__file__))
+rate = 120
 
-save_dir = os.path.join(project_dir, "smarn_screenshots")
-
-if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
-
-def get_display_server():
-    if os.getenv("WAYLAND_DISPLAY"):
-        return "w"
-    elif os.getenv("DISPLAY"):
-        return "x"
+def identify_session() -> str:
+    if "WAYLAND_DISPLAY" in os.environ:
+        return "W"
+    elif "DISPLAY" in os.environ:
+        return "X"
     else:
-        return None
+        return "U"
+        raise ValueError("Unknown session type")
 
-def take_screenshot():
-    display_server = get_display_server()
-    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    screenshot_file = os.path.join(save_dir, f"screenshot_smarn_{current_time}.png")
+def is_gnome_desktop() -> str:
+    return os.environ.get('XDG_CURRENT_DESKTOP', '').lower() == "gnome"
 
-    if display_server == "w":
-        try:
-            subprocess.run(["grim", screenshot_file], check=True)
-            print(f"Screenshot saved to {screenshot_file}")
-        except subprocess.CalledProcessError:
-            print("Grim failed, trying gnome-screenshot")
+def capture(session_type: str, is_gnome: bool) -> Image:
+    smarn_dir = os.path.dirname(os.path.abspath(__file__))
+    screenshots_dir = os.path.join(smarn_dir, "screenshots")
+
+    if not os.path.exists(screenshots_dir):
+        os.makedirs(screenshots_dir)
+        print(f"Created directory: {screenshots_dir}")
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"smarn_{timestamp}.png"
+    filepath = os.path.join(screenshots_dir, filename)
+
+    if session_type == "W":
+        if not is_gnome:
             try:
-                subprocess.run(["gnome-screenshot", "-f", screenshot_file], check=True)
-                print(f"Screenshot saved to {screenshot_file}")
+                subprocess.run(["grim", filepath], check=True)
+                print("Screenshot saved as ", filepath)
+            except subprocess.CalledProcessError as e:
+                print(f"Error executing grim: {e}")
             except FileNotFoundError:
-                print("gnome-screenshot is not installed")
+                print("grim is not found. Install grim to take screenshots")
+        else:
+            try:
+                subprocess.run(['gnome-screenshot', '-f', filepath], check=True)
+                print(f"Screenshot saved as {filepath}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error executing gnome-screenshot: {e}")
+            except FileNotFoundError:
+                print("gnome-screenshot is not installed. Please install it to take screenshots.")
 
-    elif display_server == "x":
+    elif session_type == "X":
         try:
-            subprocess.run(["scrot", screenshot_file], check=True)
-            print(f"Screenshot saved to {screenshot_file}")
+            subprocess.run(["scrot", filepath], check=True)
+            print("Screenshot saved as ", filepath)
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing scrot: {e}")
         except FileNotFoundError:
-            print("scrot is not installed")
-
-    else:
-        print("Could not detect display server")
+            print("scrot is not found. Install scrot to take screenshots")
 
 if __name__ == "__main__":
-    take_screenshot()
+    capture(identify_session(), is_gnome_desktop())
