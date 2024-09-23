@@ -1,10 +1,9 @@
 import os
 import subprocess
-from PIL import Image
 from datetime import datetime
 import time
 
-rate = 120
+rate = 2
 
 def identify_session() -> str:
     if "WAYLAND_DISPLAY" in os.environ:
@@ -15,10 +14,10 @@ def identify_session() -> str:
         return "U"
         raise ValueError("Unknown session type")
 
-def is_gnome_desktop() -> str:
+def is_gnome_desktop() -> bool:
     return os.environ.get('XDG_CURRENT_DESKTOP', '').lower() == "gnome"
 
-def capture(session_type: str, is_gnome: bool) -> Image:
+def capture(session_type: str, is_gnome: bool):
     smarn_dir = os.path.dirname(os.path.abspath(__file__))
     screenshots_dir = os.path.join(smarn_dir, "screenshots")
 
