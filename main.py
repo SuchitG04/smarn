@@ -3,6 +3,7 @@ import subprocess
 from PIL import Image
 from datetime import datetime
 import time
+from skimage.metrics import structural_similarity
 
 rate = 120
 
@@ -58,4 +59,6 @@ def capture(session_type: str, is_gnome: bool) -> Image:
             print("scrot is not found. Install scrot to take screenshots")
 
 if __name__ == "__main__":
-    capture(identify_session(), is_gnome_desktop())
+    while(True):
+        capture(identify_session(), is_gnome_desktop())
+        time.sleep(rate)
