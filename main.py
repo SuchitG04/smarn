@@ -3,7 +3,6 @@ import subprocess
 from PIL import Image
 from datetime import datetime
 import time
-from skimage.metrics import structural_similarity
 
 rate = 120
 
@@ -25,7 +24,6 @@ def capture(session_type: str, is_gnome: bool) -> Image:
 
     if not os.path.exists(screenshots_dir):
         os.makedirs(screenshots_dir)
-        print(f"Created directory: {screenshots_dir}")
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"smarn_{timestamp}.png"
@@ -35,7 +33,6 @@ def capture(session_type: str, is_gnome: bool) -> Image:
         if not is_gnome:
             try:
                 subprocess.run(["grim", filepath], check=True)
-                print("Screenshot saved as ", filepath)
             except subprocess.CalledProcessError as e:
                 print(f"Error executing grim: {e}")
             except FileNotFoundError:
@@ -43,16 +40,14 @@ def capture(session_type: str, is_gnome: bool) -> Image:
         else:
             try:
                 subprocess.run(['gnome-screenshot', '-f', filepath], check=True)
-                print(f"Screenshot saved as {filepath}")
             except subprocess.CalledProcessError as e:
                 print(f"Error executing gnome-screenshot: {e}")
             except FileNotFoundError:
-                print("gnome-screenshot is not installed. Please install it to take screenshots.")
+                print("gnome-screenshot is not installed. Install gnome-screenshots to take screenshots.")
 
     elif session_type == "X":
         try:
             subprocess.run(["scrot", filepath], check=True)
-            print("Screenshot saved as ", filepath)
         except subprocess.CalledProcessError as e:
             print(f"Error executing scrot: {e}")
         except FileNotFoundError:
