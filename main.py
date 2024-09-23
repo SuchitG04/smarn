@@ -1,9 +1,10 @@
 import os
 import subprocess
-from datetime import datetime
 import time
+from datetime import datetime
 
 rate = 2
+
 
 def identify_session() -> str:
     if "WAYLAND_DISPLAY" in os.environ:
@@ -11,11 +12,12 @@ def identify_session() -> str:
     elif "DISPLAY" in os.environ:
         return "X"
     else:
-        return "U"
         raise ValueError("Unknown session type")
 
+
 def is_gnome_desktop() -> bool:
-    return os.environ.get('XDG_CURRENT_DESKTOP', '').lower() == "gnome"
+    return os.environ.get("XDG_CURRENT_DESKTOP", "").lower() == "gnome"
+
 
 def capture(session_type: str, is_gnome: bool):
     smarn_dir = os.path.dirname(os.path.abspath(__file__))
@@ -38,11 +40,13 @@ def capture(session_type: str, is_gnome: bool):
                 print("grim is not found. Install grim to take screenshots")
         else:
             try:
-                subprocess.run(['gnome-screenshot', '-f', filepath], check=True)
+                subprocess.run(["gnome-screenshot", "-f", filepath], check=True)
             except subprocess.CalledProcessError as e:
                 print(f"Error executing gnome-screenshot: {e}")
             except FileNotFoundError:
-                print("gnome-screenshot is not installed. Install gnome-screenshots to take screenshots.")
+                print(
+                    "gnome-screenshot is not installed. Install gnome-screenshots to take screenshots."
+                )
 
     elif session_type == "X":
         try:
@@ -52,7 +56,9 @@ def capture(session_type: str, is_gnome: bool):
         except FileNotFoundError:
             print("scrot is not found. Install scrot to take screenshots")
 
+
 if __name__ == "__main__":
-    while(True):
+    while True:
         capture(identify_session(), is_gnome_desktop())
         time.sleep(rate)
+
