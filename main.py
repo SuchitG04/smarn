@@ -3,8 +3,7 @@ import subprocess
 import time
 from datetime import datetime
 
-rate = 2
-
+rate = 120
 
 def identify_session() -> str:
     if "WAYLAND_DISPLAY" in os.environ:
@@ -37,7 +36,7 @@ def capture(session_type: str, is_gnome: bool):
             except subprocess.CalledProcessError as e:
                 print(f"Error executing grim: {e}")
             except FileNotFoundError:
-                print("grim is not found. Install grim to take screenshots")
+                print("grim is not found. Install grim to take screenshots.")
         else:
             try:
                 subprocess.run(["gnome-screenshot", "-f", filepath], check=True)
@@ -54,7 +53,10 @@ def capture(session_type: str, is_gnome: bool):
         except subprocess.CalledProcessError as e:
             print(f"Error executing scrot: {e}")
         except FileNotFoundError:
-            print("scrot is not found. Install scrot to take screenshots")
+            print("scrot is not found. Install scrot to take screenshots.")
+
+    else:
+        print("Unknown session type. Screenshot not possible.")
 
 
 if __name__ == "__main__":
