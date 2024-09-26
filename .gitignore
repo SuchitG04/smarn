@@ -1,3 +1,6 @@
 /smarn_screenshots
 /.venv
 **.ipynb_checkpoints/
+/screenshots
+/.venv
+**/__pycache__/**
