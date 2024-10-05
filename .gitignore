@@ -2,5 +2,6 @@
 /.venv
 **.ipynb_checkpoints/
 /screenshots
-/.venv
+/.idea
 **/__pycache__/**
+*.db
