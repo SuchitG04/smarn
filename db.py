@@ -25,6 +25,7 @@ class Database:
 
     # TODO: Add window title and application name
     def create_tables(self) -> None:
+        """Create required tables if they do not exist."""
         self.conn.execute(
             """
                 CREATE TABLE IF NOT EXISTS img_info (
@@ -46,6 +47,7 @@ class Database:
 
 
     def insert_entry(self, image_path: str) -> None:
+        """Insert an image entry to the database using an image path."""
         embedding = get_img_emb(image_path)
         self.conn.execute(
         """
@@ -64,6 +66,7 @@ class Database:
         self.conn.commit()
 
     def get_last_entry(self) -> tuple | None:
+        """Get last entry ordered by timestamp."""
         last_entry = self.conn.execute(
             """
                 SELECT * FROM img_info
