@@ -18,7 +18,7 @@ def capture() -> str:
     filename = f"smarn_{timestamp}.png"
     filepath = os.path.join(screenshots_dir, filename)
 
-    if session_type == "W":  # Wayland session requires scrot
+    if session_type == "W":  # Wayland session requires grim
         try:
             subprocess.run(["grim", filepath], check=True)
         except subprocess.CalledProcessError as e:
@@ -28,14 +28,14 @@ def capture() -> str:
             print("grim is not found. Install grim to take screenshots.")
             exit(1)
         return filepath
-    elif session_type == "X":  # X11 session requires scrot
+    elif session_type == "X":  # X11 session requires maim
         try:
-            subprocess.run(["scrot", filepath], check=True)
+            subprocess.run(["maim", filepath], check=True)
         except subprocess.CalledProcessError as e:
-            print(f"Error executing scrot: {e}")
+            print(f"Error executing maim: {e}")
             exit(1)
         except FileNotFoundError:
-            print("scrot is not found. Install scrot to take screenshots.")
+            print("maim is not found. Install maim to take screenshots.")
             exit(1)
         print(filepath)
         return filepath

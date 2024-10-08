@@ -1,7 +1,7 @@
 /smarn_screenshots
 /.venv
 **.ipynb_checkpoints/
-/screenshots
+/server/screenshots
 **.idea/
 **/__pycache__/**
 *.db
