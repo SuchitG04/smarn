@@ -1,7 +1,7 @@
 import numpy as np
 import struct
 
-from vec_emb import get_img_emb
+from vectors import get_img_emb
 from db import Database
 
 db = Database("test.sqlite")
