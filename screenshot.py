@@ -2,15 +2,12 @@ import os
 import subprocess
 from datetime import datetime
 
-def identify_session() -> str:
-    if "WAYLAND_DISPLAY" in os.environ:
-        return "W"
-    elif "DISPLAY" in os.environ:
-        return "X"
-    else:
-        raise ValueError("Unknown session type")
+from utils import identify_session
 
-def capture(session_type: str):
+
+def capture():
+    session_type = identify_session()
+
     smarn_dir = os.path.dirname(os.path.abspath(__file__))
     screenshots_dir = os.path.join(smarn_dir, "screenshots")
 
@@ -21,7 +18,7 @@ def capture(session_type: str):
     filename = f"smarn_{timestamp}.png"
     filepath = os.path.join(screenshots_dir, filename)
 
-    if session_type == "W": # Wayland session requires scrot
+    if session_type == "W":  # Wayland session requires scrot
         try:
             subprocess.run(["grim", filepath], check=True)
         except subprocess.CalledProcessError as e:
@@ -29,7 +26,7 @@ def capture(session_type: str):
         except FileNotFoundError:
             print("grim is not found. Install grim to take screenshots.")
         return filepath
-    elif session_type == "X": # X11 session requires scrot
+    elif session_type == "X":  # X11 session requires scrot
         try:
             subprocess.run(["scrot", filepath], check=True)
         except subprocess.CalledProcessError as e:
@@ -41,3 +38,4 @@ def capture(session_type: str):
     # Gnome support to be added
     else:
         print("Unknown session type. Screenshot not possible.")
+
