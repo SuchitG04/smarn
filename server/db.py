@@ -2,7 +2,7 @@ import sqlite_vec
 import sqlite3
 
 from sqlite_vec import serialize_float32
-from vectors import get_img_emb
+from vectors import get_img_emb, get_text_emb
 from textwrap import dedent
 
 class Database:
@@ -37,6 +37,7 @@ class Database:
                 CREATE TABLE IF NOT EXISTS img_info (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     image_path TEXT NOT NULL,
+                    application_name TEXT,
                     timestamp TIMESTAMP NOT NULL
                 );
             """
@@ -75,16 +76,37 @@ class Database:
         )
         self.conn.commit()
 
-    def get_top_k_entries(self):
+    def get_top_k_entries(self, query: str, top_k: int) -> tuple[str, str, str, float] | None:
         """
+        Get top k similar image entries given a text query.
 
-        Returns deez
+        Returns:
+            tuple | None: A tuple having info of top k entries or None if the database is empty.
         """
-        
+        text_emb = get_text_emb(query)
+        top_k_entries = self.conn.execute(
+            """
+                SELECT
+                    img_info.image_path,
+                    img_info.application_name,
+                    img_info.timestamp,
+                    distance
+                FROM vec_idx
+                LEFT JOIN img_info ON vec_idx.id = img_info.id
+                WHERE embedding MATCH ?
+                    AND k = ?
+                ORDER BY distance
+            """,
+            (serialize_float32(text_emb), top_k),
+        ).fetchone()
         return top_k_entries
 
-    def get_last_entry(self) -> tuple | None:
-        """Get last entry ordered by timestamp. Returns a tuple of (raw bytes embeddings, image path)."""
+    def get_last_entry(self) -> tuple[bytes, str] | None:
+        """
+        Get last entry ordered by timestamp.
+
+        Returns:
+            tuple | None: A tuple of (raw bytes (embeddings), image path) or ."""
         last_entry = self.conn.execute(
             """
                 SELECT
@@ -96,7 +118,4 @@ class Database:
                 LIMIT 1;
             """
         ).fetchone()
-        if last_entry:
-            return last_entry
-        else:
-            return None
+        return last_entry

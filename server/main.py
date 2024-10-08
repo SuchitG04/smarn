@@ -13,6 +13,7 @@ def smarn():
         current_screenshot_path: str = capture()
         time.sleep(rate * 60)
 
+        # TDOD: insert images into databset
         if curr_emb := compare_with_prev_img(current_screenshot_path):
             if rate >= 5:
                 rate += 0.5
