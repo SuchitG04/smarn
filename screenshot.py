@@ -1,3 +1,11 @@
+def identify_session() -> str:
+    if "WAYLAND_DISPLAY" in os.environ:
+        return "W"
+    elif "DISPLAY" in os.environ:
+        return "X"
+    else:
+        raise ValueError("Unknown session type")
+
 def capture(session_type: str, is_gnome: bool):
     smarn_dir = os.path.dirname(os.path.abspath(__file__))
     screenshots_dir = os.path.join(smarn_dir, "screenshots")
