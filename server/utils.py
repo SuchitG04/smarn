@@ -4,9 +4,10 @@ import subprocess
 import numpy as np
 
 from db import Database
+from typing import Any
 from vectors import get_img_emb
 
-CMP_THRESHOLD = 0.9
+CMP_THRESHOLD = 1.0
 
 # TODO: Evaluate if this file is necessary and if the functions can be moved elsewhere.
 
@@ -23,24 +24,25 @@ def deserialize(serialized_data: bytes) -> np.ndarray:
     num_floats = len(serialized_data) // struct.calcsize('f')  # number of floats
     return np.array(list(struct.unpack(f'{num_floats}f', serialized_data)))
 
-def compare_with_prev_img(curr_img: str) -> np.ndarray | None:
+def compare_with_prev_img(curr_img: str) -> np.ndarray | Any:
     """
     Compares a given image to the last entry in the DB.
 
     Args:
         curr_img (str): The image to compare with the last entry.
     Returns:
-        None: If the images are same.
-        np.ndarray: The image embeddings otherwise.
+        np.ndarray : The image embeddings if the similarity is not above the threshold.
+
+    Note: Returns False if the images are same and None if there's no prev image.
     """
     last_entry = Database().get_last_entry()
     if last_entry is None:
-        return False, None
+        return None
     curr_img_emb = get_img_emb(curr_img)
     last_entry_emb = deserialize(last_entry[0])
     similarity = np.dot(curr_img_emb, last_entry_emb)
     if similarity > CMP_THRESHOLD:
-        return None
+        return True
     else:
         return curr_img_emb
 
