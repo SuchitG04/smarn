@@ -1,10 +1,9 @@
 import os
 import struct
 import subprocess
-
 import numpy as np
 
-from main import db
+from db import Database
 from vectors import get_img_emb
 
 CMP_THRESHOLD = 0.9
@@ -34,7 +33,7 @@ def compare_with_prev_img(curr_img: str) -> np.ndarray | None:
         None: If the images are same.
         np.ndarray: The image embeddings otherwise.
     """
-    last_entry = db.get_last_entry()
+    last_entry = Database().get_last_entry()
     if last_entry is None:
         return False, None
     curr_img_emb = get_img_emb(curr_img)

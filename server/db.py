@@ -6,7 +6,9 @@ from vectors import get_img_emb
 from textwrap import dedent
 
 class Database:
-    def __init__(self, db_file: str):
+    _instance = None
+
+    def __init__(self, db_file: str = "database.sqlite"):
         self.db_file = db_file
         self.conn = sqlite3.connect(self.db_file)
         self.conn.enable_load_extension(True)
@@ -21,6 +23,11 @@ class Database:
                 sqlite_version(): {version_info[1]}
             """)
         )
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     # TODO: Add window title and application name
     def create_tables(self) -> None:
@@ -45,7 +52,12 @@ class Database:
         self.conn.commit()
 
     def insert_entry(self, image_path: str) -> None:
-        """Insert an image entry to the database using an image path."""
+        """
+        Insert an image entry to the database using an image path.
+
+        Args:
+            image_path (str): The image path.
+        """
         embedding = get_img_emb(image_path)
         self.conn.execute(
         """
@@ -62,6 +74,14 @@ class Database:
             (serialize_float32(embedding), ),
         )
         self.conn.commit()
+
+    def get_top_k_entries(self):
+        """
+
+        Returns deez
+        """
+        
+        return top_k_entries
 
     def get_last_entry(self) -> tuple | None:
         """Get last entry ordered by timestamp. Returns a tuple of (raw bytes embeddings, image path)."""
@@ -80,4 +100,3 @@ class Database:
             return last_entry
         else:
             return None
-

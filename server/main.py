@@ -5,7 +5,6 @@ from screenshot import capture
 from utils import compare_with_prev_img
 
 rate: float = 2.0
-db = Database("vectors.sqlite")
 
 
 def smarn():
