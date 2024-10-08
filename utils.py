@@ -4,10 +4,9 @@ import subprocess
 
 import numpy as np
 
-from db import Database
+from main import db
 from vectors import get_img_emb
 
-db = Database("test.sqlite")
 CMP_THRESHOLD = 0.9
 
 # TODO: Evaluate if this file is necessary and if the functions can be moved elsewhere.
