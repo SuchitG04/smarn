@@ -1,15 +1,17 @@
 import time
 
-from utils import compare_with_prev_img
+from db import Database
 from screenshot import capture
+from utils import compare_with_prev_img
 
 rate: float = 2.0
 db = Database("vectors.sqlite")
 
 
 def smarn():
+    global rate
     while True:
-        current_screenshot_path = capture()
+        current_screenshot_path: str = capture()
         time.sleep(rate * 60)
 
         if curr_emb := compare_with_prev_img(current_screenshot_path):
@@ -22,4 +24,3 @@ def smarn():
 
 if __name__ == "__main__":
     smarn()
-
