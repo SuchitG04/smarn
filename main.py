@@ -4,7 +4,7 @@ from db import Database
 from screenshot import capture
 from utils import compare_with_prev_img
 
-rate: float = 2
+rate: float = 2.0
 
 
 def smarn():
@@ -13,7 +13,7 @@ def smarn():
         current_screenshot_path = capture()
         time.sleep(rate * 60)
 
-        if compare_with_prev_img(current_screenshot_path):
+        if curr_emb := compare_with_prev_img(current_screenshot_path):
             if rate >= 5:
                 rate += 0.5
         else:
