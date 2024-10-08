@@ -2,7 +2,7 @@ import sqlite_vec
 import sqlite3
 
 from sqlite_vec import serialize_float32
-from vec_emb import get_img_emb
+from vectors import get_img_emb
 from textwrap import dedent
 
 
