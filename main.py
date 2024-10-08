@@ -6,7 +6,7 @@ from screenshot import capture, identify_session
 from utils import compare_with_prev_img
 from db import Database
 
-rate: float = 2
+rate: float = 2.0
 
 def smarn():
     db = Database("vectors.sqlite")
@@ -14,7 +14,7 @@ def smarn():
         current_screenshot_path = capture(identify_session())
         time.sleep(rate * 60)
 
-        if compare_with_prev_img(current_screenshot_path):
+        if curr_emb := compare_with_prev_img(current_screenshot_path):
             if rate >= 5:
                 rate += 0.5
         else:
