@@ -45,7 +45,6 @@ class Database:
         )
         self.conn.commit()
 
-
     def insert_entry(self, image_path: str) -> None:
         """Insert an image entry to the database using an image path."""
         embedding = get_img_emb(image_path)
@@ -66,11 +65,15 @@ class Database:
         self.conn.commit()
 
     def get_last_entry(self) -> tuple | None:
-        """Get last entry ordered by timestamp."""
+        """Get last entry ordered by timestamp. Returns a tuple of (raw bytes embeddings, image path)."""
         last_entry = self.conn.execute(
             """
-                SELECT * FROM img_info
-                ORDER BY timestamp DESC 
+                SELECT
+                    vec_idx.embedding,
+                    img_info.image_path
+                FROM vec_idx
+                LEFT JOIN img_info ON vec_idx.id = img_info.id
+                ORDER BY img_info.timestamp DESC 
                 LIMIT 1;
             """
         ).fetchone()
