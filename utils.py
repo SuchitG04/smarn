@@ -14,7 +14,7 @@ def deserialize(serialized_data: bytes) -> np.ndarray:
     num_floats = len(serialized_data) // struct.calcsize('f')  # number of floats
     return np.array(list(struct.unpack(f'{num_floats}f', serialized_data)))
 
-def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
+def compare_with_prev_img(curr_img: str) -> bool:
     """
     Compares a given image to the last entry in the DB.
     Returns (True, img_emb) if the images are same, (False, None) otherwise.
@@ -26,6 +26,6 @@ def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
     last_entry_emb = deserialize(last_entry[0])
     similarity = np.dot(curr_img_emb, last_entry_emb)
     if similarity > CMP_THRESHOLD:
-        return True, last_entry_emb
+        return True
     else:
-        return False, None
+        return False

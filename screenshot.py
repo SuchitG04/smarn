@@ -28,6 +28,7 @@ def capture(session_type: str):
             print(f"Error executing grim: {e}")
         except FileNotFoundError:
             print("grim is not found. Install grim to take screenshots.")
+        return filepath
     elif session_type == "X": # X11 session requires scrot
         try:
             subprocess.run(["scrot", filepath], check=True)
@@ -35,6 +36,8 @@ def capture(session_type: str):
             print(f"Error executing scrot: {e}")
         except FileNotFoundError:
             print("scrot is not found. Install scrot to take screenshots.")
+        print(filepath)
+        return filepath
     # Gnome support to be added
     else:
         print("Unknown session type. Screenshot not possible.")

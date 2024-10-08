@@ -5,9 +5,8 @@ from sqlite_vec import serialize_float32
 from vectors import get_img_emb
 from textwrap import dedent
 
-
 class Database:
-    def __init__(self, db_file):
+    def __init__(self, db_file: str):
         self.db_file = db_file
         self.conn = sqlite3.connect(self.db_file)
         self.conn.enable_load_extension(True)
