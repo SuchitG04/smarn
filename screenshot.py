@@ -5,7 +5,7 @@ from datetime import datetime
 from utils import identify_session
 
 
-def capture():
+def capture() -> str:
     session_type = identify_session()
 
     smarn_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,19 +23,23 @@ def capture():
             subprocess.run(["grim", filepath], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error executing grim: {e}")
+            exit(1)
         except FileNotFoundError:
             print("grim is not found. Install grim to take screenshots.")
+            exit(1)
         return filepath
     elif session_type == "X":  # X11 session requires scrot
         try:
             subprocess.run(["scrot", filepath], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error executing scrot: {e}")
+            exit(1)
         except FileNotFoundError:
             print("scrot is not found. Install scrot to take screenshots.")
+            exit(1)
         print(filepath)
         return filepath
     # Gnome support to be added
     else:
         print("Unknown session type. Screenshot not possible.")
-
+        exit(1)
