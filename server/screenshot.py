@@ -6,6 +6,9 @@ from utils import identify_session
 
 
 def capture() -> str:
+    """
+    A function that captures a screenshot (maim for X11 and grim for Wayland) and returns the path of the screenshot.
+    """
     session_type = identify_session()
 
     smarn_dir = os.path.dirname(os.path.abspath(__file__))

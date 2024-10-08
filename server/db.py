@@ -76,7 +76,7 @@ class Database:
         )
         self.conn.commit()
 
-    def get_top_k_entries(self, query: str, top_k: int) -> tuple[str, str, str, float] | None:
+    def get_top_k_entries(self, query: str, k: int) -> list[tuple[str, str, str, float]] | None:
         """
         Get top k similar image entries given a text query.
 
@@ -97,8 +97,8 @@ class Database:
                     AND k = ?
                 ORDER BY distance
             """,
-            (serialize_float32(text_emb), top_k),
-        ).fetchone()
+            (serialize_float32(text_emb), k),
+        ).fetchall()
         return top_k_entries
 
     def get_last_entry(self) -> tuple[bytes, str] | None:
