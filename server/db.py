@@ -4,6 +4,7 @@ import sqlite3
 from sqlite_vec import serialize_float32
 from vectors import get_img_emb, get_text_emb
 from textwrap import dedent
+from typing import Optional
 
 class Database:
     _instance = None
@@ -29,7 +30,6 @@ class Database:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    # TODO: Add window title and application name
     def create_tables(self) -> None:
         """Create required tables if they do not exist."""
         self.conn.execute(
@@ -52,7 +52,7 @@ class Database:
         )
         self.conn.commit()
 
-    def insert_entry(self, image_path: str) -> None:
+    def insert_entry(self, image_path: str, application_name: str = "") -> None:
         """
         Insert an image entry to the database using an image path.
 
@@ -62,10 +62,10 @@ class Database:
         embedding = get_img_emb(image_path)
         self.conn.execute(
         """
-                INSERT INTO img_info (image_path, timestamp) 
-                VALUES (?, datetime())
+                INSERT INTO img_info (image_path, application_name, timestamp) 
+                VALUES (?, ?, datetime())
             """,
-            (image_path, ),
+            (image_path, application_name, ),
         )
         self.conn.execute(
             """

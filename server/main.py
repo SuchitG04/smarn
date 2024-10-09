@@ -2,7 +2,7 @@ import time
 
 from db import Database
 from screenshot import capture
-from utils import compare_with_prev_img
+from utils import compare_with_prev_img, get_active_application_name
 
 rate: float = 2.0
 
@@ -13,7 +13,7 @@ def smarn():
         current_screenshot_path: str = capture()
         time.sleep(rate * 60)
 
-        # TDOD: insert images into databset
+        # TODO: insert images into database
         if curr_emb := compare_with_prev_img(current_screenshot_path):
             if rate >= 5:
                 rate += 0.5
