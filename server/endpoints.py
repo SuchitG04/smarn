@@ -1,15 +1,25 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 from db import Database
 from models import ImageMetadata, QueryResponse
 
 app = FastAPI()
 db = Database()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:1420"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.get("/")
 async def greet():
-    return {
-        "message": "Hello from smarn"
-    }
+    return {"message": "Hello from smarn"}
+
 
 @app.get("/search", response_model=QueryResponse)
 async def search(text_query: str):
@@ -28,19 +38,21 @@ async def search(text_query: str):
                 image_path=entry[0],
                 application_name=entry[1],
                 timestamp=entry[2],
-                distance=entry[3]
+                distance=entry[3],
             )
             image_list_with_metadata.append(metadata)
 
         response = QueryResponse(
-            text_query=text_query,
-            image_list_with_metadata=image_list_with_metadata
+            text_query=text_query, image_list_with_metadata=image_list_with_metadata
         )
 
         return response
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal sever error: "+str(e))
+        raise HTTPException(status_code=500, detail="Internal sever error: " + str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app="endpoints:app", host="localhost", port=8000, reload=True)
+
