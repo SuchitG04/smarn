@@ -6,9 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tauri App</title>
     <script type="module" src="/src/main.ts" defer></script>
+    <script
+      src="https://kit.fontawesome.com/5f1fdcce82.js"
+      crossorigin="anonymous"
+    ></script>
   </head>
 
-  <body>
-    <div class="container bg-red-200 text-red-950">hi</div>
+  <body class="bg-background font-sans">
+    <div class="min-h-screen flex flex-col items-center justify-center">
+      <div class="mb-4 flex flex-col items-center justify-center">
+        <div class="text-6xl font-bold font-mono text-accent">smarn</div>
+      </div>
+
+      <div class="w-full max-w-lg mb-8">
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="Type your query..."
+            class="w-full p-3 bg-sky-100 rounded-lg pl-10 focus:outline-none focus:border-accent placeholder:text-background"
+            id="search-input"
+          />
+          <i
+            class="fa-solid absolute right-3 top-3 fa-magnifying-glass text-2xl text-background cursor-pointer w-fit"
+            id="search-icon"
+          ></i>
+        </div>
+      </div>
+
+      <div
+        id="image-gallery"
+        class="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      ></div>
+    </div>
   </body>
 </html>
