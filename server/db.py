@@ -1,10 +1,10 @@
-import sqlite_vec
 import sqlite3
+from textwrap import dedent
 
+import sqlite_vec
 from sqlite_vec import serialize_float32
 from vectors import get_img_emb, get_text_emb
-from textwrap import dedent
-from typing import Optional
+
 
 class Database:
     _instance = None
@@ -16,13 +16,17 @@ class Database:
         sqlite_vec.load(self.conn)
         self.conn.enable_load_extension(False)
 
-        version_info = self.conn.execute("SELECT sqlite_version(), vec_version()").fetchone()
+        version_info = self.conn.execute(
+            "SELECT sqlite_version(), vec_version()"
+        ).fetchone()
         print(
-            dedent(f"""
+            dedent(
+                f"""
                 Database initialized.
                 vec_version(): {version_info[0]}
                 sqlite_version(): {version_info[1]}
-            """)
+            """
+            )
         )
 
     def __new__(cls, *args, **kwargs):
@@ -61,22 +65,27 @@ class Database:
         """
         embedding = get_img_emb(image_path)
         self.conn.execute(
-        """
+            """
                 INSERT INTO img_info (image_path, application_name, timestamp) 
                 VALUES (?, ?, datetime())
             """,
-            (image_path, application_name, ),
+            (
+                image_path,
+                application_name,
+            ),
         )
         self.conn.execute(
             """
                 INSERT INTO vec_idx (embedding)
                 VALUES (?)
             """,
-            (serialize_float32(embedding), ),
+            (serialize_float32(embedding),),
         )
         self.conn.commit()
 
-    def get_top_k_entries(self, query: str, k: int) -> list[tuple[str, str, str, float]] | None:
+    def get_top_k_entries(
+        self, query: str, k: int
+    ) -> list[tuple[str, str, str, float]] | None:
         """
         Get top k similar image entries given a text query.
 
