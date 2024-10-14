@@ -13,8 +13,11 @@ def smarn():
     while True:
         current_screenshot_path: str = capture()
         time.sleep(rate * 60)
-
-        if curr_emb := compare_with_prev_img(current_screenshot_path):
+        # TODO: Fix logic
+        # Expected: if true, reduce rate
+        # if None, don't do anything
+        # if an embedding is returned, add to db
+        if curr_emb := compare_with_prev_img(current_screenshot_path) == True:
             if rate >= 5:
                 rate += 0.5
         else:

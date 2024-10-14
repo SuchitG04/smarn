@@ -24,6 +24,20 @@ def deserialize(serialized_data: bytes) -> np.ndarray:
     num_floats = len(serialized_data) // struct.calcsize('f')  # number of floats
     return np.array(list(struct.unpack(f'{num_floats}f', serialized_data)))
 
+def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
+    """
+    Computes the cosine similarity of two vectors.
+    
+    Args:
+        vec1 (np.ndarray): The first vector.
+        vec2 (np.ndarray): The second vector.
+    Returns:
+        float: The cosine similarity of two vectors.
+    """
+    vec1_norm = np.linalg.norm(vec1)
+    vec2_norm = np.linalg.norm(vec2)
+    return np.dot(vec1, vec2) / (vec1_norm * vec2_norm)
+
 def compare_with_prev_img(curr_img: str) -> np.ndarray | Any:
     """
     Compares a given image to the last entry in the DB.
@@ -33,14 +47,15 @@ def compare_with_prev_img(curr_img: str) -> np.ndarray | Any:
     Returns:
         np.ndarray : The image embeddings if the similarity is not above the threshold.
 
-    Note: Returns False if the images are same and None if there's no prev image.
+    Note: Returns True if the images are same and None if there's no prev image.
     """
     last_entry = Database().get_last_entry()
     if last_entry is None:
         return None
     curr_img_emb = get_img_emb(curr_img)
     last_entry_emb = deserialize(last_entry[0])
-    similarity = np.dot(curr_img_emb, last_entry_emb)
+    similarity = cosine_similarity(curr_img_emb, last_entry_emb)
+
     if similarity > CMP_THRESHOLD:
         return True
     else:

@@ -48,9 +48,9 @@ class Database:
         )
         self.conn.execute(
             """
-                CREATE VIRTUAL TABLE IF NOT EXISTS vec_idx USING vec0  (
+                CREATE VIRTUAL TABLE IF NOT EXISTS vec_idx USING vec0 (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    embedding FLOAT[768]
+                    embedding FLOAT[768] distance_metric=cosine
                 );
             """
         )
@@ -79,7 +79,7 @@ class Database:
                 INSERT INTO vec_idx (embedding)
                 VALUES (?)
             """,
-            (serialize_float32(embedding),),
+            (embedding, ),
         )
         self.conn.commit()
 
@@ -89,6 +89,9 @@ class Database:
         """
         Get top k similar image entries given a text query.
 
+        Args:
+            query (str): Text query against which the top `k` similar images are retrieved.
+            k (int): Number of images to retrieve from the database.
         Returns:
             tuple | None: A tuple having info of top k entries or None if the database is empty.
         """
@@ -115,7 +118,8 @@ class Database:
         Get last entry ordered by timestamp.
 
         Returns:
-            tuple | None: A tuple of (raw bytes (embeddings), image path) or ."""
+            tuple | None: A tuple of (raw bytes (embeddings), image path) or `None` if the database is empty.
+        """
         last_entry = self.conn.execute(
             """
                 SELECT
