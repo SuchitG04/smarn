@@ -3,7 +3,7 @@ import os
 import numpy as np
 from PIL import Image
 
-from models import device, model, processor
+from server.models import device, model, processor
 
 
 def get_img_emb(path: str) -> np.ndarray:

@@ -1,15 +1,16 @@
 import time
 
-from db import Database
-from screenshot import capture
-from utils import compare_with_prev_img, get_active_application_name
+from .db import Database
+from .screenshot import capture
+from .utils import compare_with_prev_img, get_active_application_name
 
-rate: float = 2.0
+rate: float = 0.5
 
 
 def smarn():
     global rate
     Ddb = Database()
+    Ddb.create_tables()
     while True:
         current_screenshot_path: str = capture()
         time.sleep(rate * 60)

@@ -3,9 +3,9 @@ import struct
 import subprocess
 import numpy as np
 
-from db import Database
+from .db import Database
 from typing import Any
-from vectors import get_img_emb
+from .vectors import get_img_emb
 
 CMP_THRESHOLD = 1.0
 

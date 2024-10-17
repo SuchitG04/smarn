@@ -3,7 +3,7 @@ from textwrap import dedent
 
 import sqlite_vec
 from sqlite_vec import serialize_float32
-from vectors import get_img_emb, get_text_emb
+from .vectors import get_img_emb, get_text_emb
 
 
 class Database:

@@ -2,7 +2,7 @@ import os
 import subprocess
 from datetime import datetime
 
-from utils import identify_session
+from .utils import identify_session
 
 
 def capture() -> str:
