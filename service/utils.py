@@ -60,10 +60,9 @@ def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
     similarity = cosine_similarity(curr_img_emb, last_entry_emb)
 
     if similarity > CMP_THRESHOLD:
-        return True, curr_img_emb, similarity
+        return curr_img_emb, similarity
     else:
-        return False, curr_img_emb, similarity
-
+        return curr_img_emb, similarity
 
 def identify_session() -> str:
     """

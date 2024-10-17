@@ -19,13 +19,9 @@ def smarn():
         active_application_name = get_active_application_name()
 
         # if the current embedding is an array, insert it into the database
-        if isinstance(curr_emb[1], np.ndarray):
-            Ddb.insert_entry(
-                current_screenshot_path, active_application_name, curr_emb[1]
-            )
-            # check if the interval has to be altered
-            interval = modulate_interval(interval, curr_emb[2])
-        # do nothing if the database is empty
+        if isinstance(curr_emb[0], np.ndarray):
+            Ddb.insert_entry(current_screenshot_path, active_application_name, curr_emb[0])
+            interval = modulate_interval(interval, curr_emb[1])
         else:
             Ddb.insert_entry(current_screenshot_path, active_application_name)
             print("Database is empty.")
