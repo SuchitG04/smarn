@@ -155,7 +155,7 @@ def modulate_interval(interval: float, cosine_similarity: float) -> float:
     Returns:
         interval: Modulated interval (necessarily not the different in value as the interval argument)
     """
-    delta = 0.125  # The change in interval
+    delta = 0.25  # The change in interval
     # Ensure interval remains between 0.25 and 5
     if 0.25 <= interval <= 5:
         if cosine_similarity > 0.9:  
