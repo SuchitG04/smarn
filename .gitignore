@@ -6,6 +6,7 @@
 **/__pycache__/**
 *.db
 *.sqlite
+*.ipynb
 
 ############### frontend ###############
 
