@@ -1,6 +1,6 @@
 import torch.cuda as cuda
-from colpali import load_gpu_model
-from jina_clip import load_cpu_model
+from .colpali import load_gpu_model
+from .jina_clip import load_cpu_model
 
 model = None
 processor = None
