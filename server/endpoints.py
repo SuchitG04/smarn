@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from db import Database
-from models import ImageMetadata, QueryResponse
+from pydantic_models import ImageMetadata, QueryResponse
 
 app = FastAPI()
 db = Database()
@@ -55,4 +55,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app="endpoints:app", host="localhost", port=8000, reload=True)
-
