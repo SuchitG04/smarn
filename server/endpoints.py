@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import Database
+from service.db import Database
 from pydantic_models import ImageMetadata, QueryResponse
 
 app = FastAPI()

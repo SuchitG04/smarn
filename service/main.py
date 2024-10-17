@@ -26,7 +26,7 @@ def smarn():
         
         # inserting images into database
         active_application_name = get_active_application_name()
-        Database.insert_entry(current_screenshot_path, active_application_name)
+        Ddb.insert_entry(current_screenshot_path, active_application_name)
 
 if __name__ == "__main__":
     smarn()
