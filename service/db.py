@@ -1,8 +1,7 @@
 import sqlite3
-from textwrap import dedent
-
 import sqlite_vec
-from sqlite_vec import serialize_float32
+import numpy as np
+
 from .vectors import get_img_emb, get_text_emb
 
 
@@ -16,21 +15,9 @@ class Database:
         sqlite_vec.load(self.conn)
         self.conn.enable_load_extension(False)
 
-        version_info = self.conn.execute(
-            "SELECT sqlite_version(), vec_version()"
-        ).fetchone()
-        print(
-            dedent(
-                f"""
-                Database initialized.
-                vec_version(): {version_info[0]}
-                sqlite_version(): {version_info[1]}
-            """
-            )
-        )
-
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
+            print("Database Initialized.")
             cls._instance = super().__new__(cls)
         return cls._instance
 
@@ -56,17 +43,26 @@ class Database:
         )
         self.conn.commit()
 
-    def insert_entry(self, image_path: str, application_name: str = "") -> None:
+    def insert_entry(
+        self,
+        image_path: str,
+        application_name: str = "",
+        embedding: np.ndarray | None = None,
+    ) -> None:
         """
-        Insert an image entry to the database using an image path.
+        Insert an image entry to the database using an image path or the image embedding if provided.
 
         Args:
             image_path (str): The image path.
+            application_name (str): The application name.
+            embedding (np.ndarray, optional): The image embedding.
         """
-        embedding = get_img_emb(image_path)
+        if embedding is None:
+            embedding = get_img_emb(image_path)
+
         self.conn.execute(
             """
-                INSERT INTO img_info (image_path, application_name, timestamp) 
+                INSERT INTO img_info (image_path, application_name, timestamp)
                 VALUES (?, ?, datetime())
             """,
             (
@@ -79,7 +75,7 @@ class Database:
                 INSERT INTO vec_idx (embedding)
                 VALUES (?)
             """,
-            (embedding, ),
+            (embedding,),
         )
         self.conn.commit()
 
@@ -109,7 +105,7 @@ class Database:
                     AND k = ?
                 ORDER BY distance
             """,
-            (serialize_float32(text_emb), k),
+            (text_emb, k),
         ).fetchall()
         return top_k_entries
 
@@ -127,7 +123,7 @@ class Database:
                     img_info.image_path
                 FROM vec_idx
                 LEFT JOIN img_info ON vec_idx.id = img_info.id
-                ORDER BY img_info.timestamp DESC 
+                ORDER BY img_info.timestamp DESC
                 LIMIT 1;
             """
         ).fetchone()

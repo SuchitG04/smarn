@@ -11,8 +11,10 @@ def get_img_emb(path: str) -> np.ndarray:
     if not os.path.exists(path):
         raise ValueError("Image path does not exist!")
 
-    if model is None or processor is None or device is None:
+    if device == "gpu" and (model is None or processor is None or device is None):
         raise ValueError("Model or processor was not loaded properly.")
+    if device == "cpu" and (model is None or device is None):
+        raise ValueError("Model was not loaded properly.")
 
     if device == "gpu":
         processed_image = processor.process_images([Image.open(path)]).to(model.device)

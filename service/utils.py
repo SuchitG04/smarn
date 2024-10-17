@@ -4,7 +4,6 @@ import subprocess
 import numpy as np
 
 from .db import Database
-from typing import Any
 from .vectors import get_img_emb
 
 CMP_THRESHOLD = 1.0
@@ -21,13 +20,14 @@ def deserialize(serialized_data: bytes) -> np.ndarray:
     Returns:
         np.ndarray: Deserialized numpy array.
     """
-    num_floats = len(serialized_data) // struct.calcsize('f')  # number of floats
-    return np.array(list(struct.unpack(f'{num_floats}f', serialized_data)))
+    num_floats = len(serialized_data) // struct.calcsize("f")  # number of floats
+    return np.array(list(struct.unpack(f"{num_floats}f", serialized_data)))
+
 
 def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
     """
     Computes the cosine similarity of two vectors.
-    
+
     Args:
         vec1 (np.ndarray): The first vector.
         vec2 (np.ndarray): The second vector.
@@ -38,7 +38,8 @@ def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
     vec2_norm = np.linalg.norm(vec2)
     return np.dot(vec1, vec2) / (vec1_norm * vec2_norm)
 
-def compare_with_prev_img(curr_img: str) -> np.ndarray | Any:
+
+def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
     """
     Compares a given image to the last entry in the DB.
 
@@ -47,19 +48,19 @@ def compare_with_prev_img(curr_img: str) -> np.ndarray | Any:
     Returns:
         np.ndarray : The image embeddings if the similarity is not above the threshold.
 
-    Note: Returns True if the images are same and None if there's no prev image.
+    Note: Returns True if the images are same, None if there's no prev image, and the embedding if they are not similar.
     """
     last_entry = Database().get_last_entry()
     if last_entry is None:
-        return None
+        return False, None
     curr_img_emb = get_img_emb(curr_img)
     last_entry_emb = deserialize(last_entry[0])
     similarity = cosine_similarity(curr_img_emb, last_entry_emb)
 
     if similarity > CMP_THRESHOLD:
-        return True
+        return True, curr_img_emb
     else:
-        return curr_img_emb
+        return False, curr_img_emb
 
 
 def identify_session() -> str:
@@ -145,4 +146,3 @@ def get_active_application_name() -> str:
         return get_active_application_name_x11()
     else:
         raise ValueError("Unknown session type")
-
