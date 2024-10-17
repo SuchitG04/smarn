@@ -33,3 +33,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# notebooks
+server/models/colpali.ipynb
+server/usage.ipynb
