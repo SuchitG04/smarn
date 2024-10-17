@@ -59,10 +59,7 @@ def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
     last_entry_emb = deserialize(last_entry[0])
     similarity = cosine_similarity(curr_img_emb, last_entry_emb)
 
-    if similarity > CMP_THRESHOLD:
-        return curr_img_emb, similarity
-    else:
-        return curr_img_emb, similarity
+    return curr_img_emb, similarity
 
 def identify_session() -> str:
     """
@@ -158,7 +155,7 @@ def modulate_interval(interval: float, cosine_similarity: float) -> float:
     Returns:
         interval: Modulated interval (necessarily not the different in value as the interval argument)
     """
-    delta = 0.15  # The change in interval
+    delta = 0.125  # The change in interval
     # Ensure interval remains between 0.25 and 5
     if 0.25 <= interval <= 5:
         if cosine_similarity > 0.9:  
