@@ -3,8 +3,11 @@ import os
 import numpy as np
 from PIL import Image
 
+import logging
+
 from server.models import device, model, processor
 
+logger = logging.getLogger(__name__)
 
 def get_img_emb(path: str) -> np.ndarray:
     """Get embeddings for an image given an image path. Raises ValueError if image path is invalid."""
@@ -22,8 +25,8 @@ def get_img_emb(path: str) -> np.ndarray:
         return image_embedding.cpu().detach().numpy()
 
     # CPU
+    logger.info("Image embedding retrieved.")
     return model.encode_image(path)
-
 
 def get_text_emb(text: str) -> np.ndarray:
     """Get embeddings for text."""
@@ -36,4 +39,5 @@ def get_text_emb(text: str) -> np.ndarray:
         return text_embedding.cpu().detach().numpy()
 
     # CPU
+    logger.info("Text embedding retrieved.")
     return model.encode_text(text)

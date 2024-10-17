@@ -3,10 +3,12 @@ import struct
 import subprocess
 import numpy as np
 
+import logging
+
 from .db import Database
 from .vectors import get_img_emb
 
-CMP_THRESHOLD = 0.85
+logger = logging.getLogger(__name__)
 
 # TODO: Evaluate if this file is necessary and if the functions can be moved elsewhere.
 def deserialize(serialized_data: bytes) -> np.ndarray:
@@ -20,7 +22,6 @@ def deserialize(serialized_data: bytes) -> np.ndarray:
     """
     num_floats = len(serialized_data) // struct.calcsize("f")  # number of floats
     return np.array(list(struct.unpack(f"{num_floats}f", serialized_data)))
-
 
 def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
     """
@@ -40,8 +41,7 @@ def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
 
     return np.dot(vec1, vec2) / (vec1_norm * vec2_norm)
 
-
-def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
+def compare_with_prev_img(curr_img: str) -> tuple[np.ndarray | None, float | None]:
     """
     Compares a given image to the last entry in the DB.
 
@@ -54,7 +54,8 @@ def compare_with_prev_img(curr_img: str) -> tuple[bool, np.ndarray | None]:
     """
     last_entry = Database().get_last_entry()
     if last_entry is None:
-        return False, None
+        logger.debug("No last entry detected.")
+        return None, None
     curr_img_emb = get_img_emb(curr_img)
     last_entry_emb = deserialize(last_entry[0])
     similarity = cosine_similarity(curr_img_emb, last_entry_emb)
@@ -69,12 +70,13 @@ def identify_session() -> str:
         str: "X" if the session is X11, "W" if the session is Wayland.
     """
     if "WAYLAND_DISPLAY" in os.environ:
+        logger.info("Wayland display server detected.")
         return "W"
     elif "DISPLAY" in os.environ:
+        logger.info("X11 display server detected.")
         return "X"
     else:
         raise ValueError("Unknown session type")
-
 
 def get_active_application_name_x11() -> str:
     """
@@ -107,12 +109,14 @@ def get_active_application_name_x11() -> str:
         return wm_class
 
     except subprocess.CalledProcessError as e:
+        logger.error("Failed to retrieve window information.")
         raise RuntimeError(f"Failed to retrieve window information from X11: {e}")
     except IndexError as e:
+        logger.error("Unexpected output.")
         raise RuntimeError(f"Unexpected output format from xprop command: {e}")
     except Exception as e:
+        logger.error("Unexpected error.")
         raise RuntimeError(f"An unexpected error occurred: {e}")
-
 
 # TODO: Implement this function to handle wayland applications
 def get_active_application_name_wayland() -> str:
@@ -123,7 +127,6 @@ def get_active_application_name_wayland() -> str:
         str: The name of the active application in a Wayland session.
     """
     return ""
-
 
 def get_active_application_name() -> str:
     """
@@ -138,7 +141,7 @@ def get_active_application_name() -> str:
             # Try to get the application name using X11 function to check if it's running on XWayland
             return get_active_application_name_x11()
         except RuntimeError:
-            print("Functionality not implemented yet.")
+            logger.debug("Functionality yet to implement.")
             return get_active_application_name_wayland()
     elif session == "X":
         return get_active_application_name_x11()
@@ -158,8 +161,10 @@ def modulate_interval(interval: float, cosine_similarity: float) -> float:
     delta = 0.25  # The change in interval
     # Ensure interval remains between 0.25 and 5
     if 0.25 <= interval <= 5:
-        if cosine_similarity > 0.9:  
+        if cosine_similarity > 0.925:  
             interval = min(5, interval + delta) # High similarity, increase interval
+            logger.info(f"High similarity, Increasing interval by {delta} minutes")
         elif cosine_similarity < 0.6:  
             interval = max(0.25, interval - delta) # Low similarity, decrease interval
+            logger.info(f"Low similarity, Increasing interval by {delta} minutes")
     return interval

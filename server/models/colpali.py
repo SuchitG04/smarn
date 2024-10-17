@@ -1,7 +1,9 @@
 import torch
+import logging
 from colpali_engine.models import ColPali, ColPaliProcessor
 from transformers import BitsAndBytesConfig, PreTrainedModel
 
+logger = logging.getLogger(__name__)
 
 def load_gpu_model() -> tuple[PreTrainedModel, ColPaliProcessor]:
     """
@@ -32,4 +34,5 @@ def load_gpu_model() -> tuple[PreTrainedModel, ColPaliProcessor]:
     else:
         processor = processor_or_tuple
 
+    logger.info("Loading Colpali with quantization.")
     return model, processor

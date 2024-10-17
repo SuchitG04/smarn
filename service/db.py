@@ -1,9 +1,11 @@
 import sqlite3
 import sqlite_vec
 import numpy as np
+import logging
 
 from .vectors import get_img_emb, get_text_emb
 
+logger = logging.getLogger(__name__)
 
 class Database:
     _instance = None
@@ -14,10 +16,11 @@ class Database:
         self.conn.enable_load_extension(True)
         sqlite_vec.load(self.conn)
         self.conn.enable_load_extension(False)
+        logger.info("Vector Database file created.")
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            print("Database Initialized.")
+            logger.info("SQLite Vector Database initialized.")
             cls._instance = super().__new__(cls)
         return cls._instance
 
@@ -42,13 +45,9 @@ class Database:
             """
         )
         self.conn.commit()
+        logger.info("Tables created.")
 
-    def insert_entry(
-        self,
-        image_path: str,
-        application_name: str = "",
-        embedding: np.ndarray | None = None,
-    ) -> None:
+    def insert_entry(self, image_path: str, application_name: str = "", embedding: np.ndarray | None = None) -> None:
         """
         Insert an image entry to the database using an image path or the image embedding if provided.
 
@@ -78,10 +77,9 @@ class Database:
             (embedding,),
         )
         self.conn.commit()
+        logger.info("Entry inserted into Vector Database.")
 
-    def get_top_k_entries(
-        self, query: str, k: int
-    ) -> list[tuple[str, str, str, float]] | None:
+    def get_top_k_entries(self, query: str, k: int) -> list[tuple[str, str, str, float]] | None:
         """
         Get top k similar image entries given a text query.
 
@@ -107,6 +105,7 @@ class Database:
             """,
             (text_emb, k),
         ).fetchall()
+        logger.info(f"Fetched top {k} entries from the database.")
         return top_k_entries
 
     def get_last_entry(self) -> tuple[bytes, str] | None:
@@ -127,4 +126,5 @@ class Database:
                 LIMIT 1;
             """
         ).fetchone()
+        logger.info("Returned the last entry pushed to the Vector Database.")
         return last_entry

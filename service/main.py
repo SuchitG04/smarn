@@ -1,9 +1,14 @@
 import time
 import numpy as np
 
+import logging
+import log_config
+
 from .db import Database
 from .screenshot import capture
 from .utils import compare_with_prev_img, get_active_application_name, modulate_interval
+
+logger = logging.getLogger(__name__)
 
 interval: float = 1
 
@@ -24,9 +29,9 @@ def smarn():
             interval = modulate_interval(interval, curr_emb[1])
         else:
             Ddb.insert_entry(current_screenshot_path, active_application_name)
-            print("Database is empty.")
+            logger.info("Database was found to be empty. No comparison initiated.")
 
-        print("INTERVAL: ", interval)
+        logger.info(f"CURRENT INTERVAL is {interval}")
 
 if __name__ == "__main__":
     smarn()

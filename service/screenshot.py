@@ -2,8 +2,11 @@ import os
 import subprocess
 from datetime import datetime
 
+import logging
+
 from .utils import identify_session
 
+logger = logging.getLogger(__name__)
 
 def capture() -> str:
     """
@@ -25,24 +28,24 @@ def capture() -> str:
         try:
             subprocess.run(["grim", filepath], check=True)
         except subprocess.CalledProcessError as e:
-            print(f"Error executing grim: {e}")
+            logger.debug(f"Error executing grim: {e}")
             exit(1)
         except FileNotFoundError:
-            print("grim is not found. Install grim to take screenshots.")
+            logger.debug("grim was not found on this system. Error capturing screenshot.")
             exit(1)
         return filepath
     elif session_type == "X":  # X11 session requires maim
         try:
             subprocess.run(["maim", filepath], check=True)
         except subprocess.CalledProcessError as e:
-            print(f"Error executing maim: {e}")
+            logger.debug(f"Error executing maim: {e}")
             exit(1)
         except FileNotFoundError:
-            print("maim is not found. Install maim to take screenshots.")
+            logger.debug("maim was not found on this system. Error capturing screenshot.")
             exit(1)
-        print(filepath)
+        logger.info(f"SCREENSHOT FILEPATH: {filepath}")
         return filepath
     # Gnome support to be added
     else:
-        print("Unknown session type. Screenshot not possible.")
+        logger.error("Unknown session detected. Screenshot not possible.")
         exit(1)
