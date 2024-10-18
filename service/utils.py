@@ -164,11 +164,11 @@ def modulate_interval(interval: float, cosine_similarity: float) -> float:
     delta = 0.25  # The change in interval
     # Ensure interval remains between 0.25 and 5
     if 0.25 <= interval <= 5:
-        if cosine_similarity > 0.925:  
+        if cosine_similarity > 0.95:  
             interval = min(5, interval + delta) # High similarity, increase interval
-            logger.info(f"High similarity, Increasing interval by {delta} minutes")
-        elif cosine_similarity < 0.6:  
+            logger.info(f"High similarity; Increasing interval by {delta} minutes")
+        elif cosine_similarity < 0.8:  
             interval = max(0.25, interval - delta) # Low similarity, decrease interval
-            logger.info(f"Low similarity, Increasing interval by {delta} minutes")        
+            logger.info(f"Low similarity; Decreasing interval by {delta} minutes")        
     
     return interval
