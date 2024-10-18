@@ -90,6 +90,8 @@ class Database:
         except sqlite3.Error as e:
             logger.error(f"Error inserting entry: {e}")
             self.conn.rollback()
+        except ValueError as e:
+            logger.error("The model or processor may not have been loaded properly.")
         except Exception as e:
             logger.error(f"Unexpected error while inserting entry: {e}")
             raise
@@ -129,6 +131,8 @@ class Database:
         except sqlite3.Error as e:
             logger.error(f"Error fetching top {k} entries: {e}")
             return None
+        except ValueError as e:
+            logger.error("The model or processor may not have been loaded properly.")
         except Exception as e:
             logger.error(f"Unexpected error during query execution: {e}")
             raise

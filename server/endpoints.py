@@ -1,15 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-import logging
-
 from service.db import Database
 from .pydantic_models import ImageMetadata, QueryResponse
 
 app = FastAPI()
 db = Database()
-
-logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,13 +22,11 @@ async def greet():
 @app.get("/search", response_model=QueryResponse)
 async def search(text_query: str):
     if not text_query or text_query.strip() == "":
-        logger.error("The text query was found to be empty.")
         raise HTTPException(status_code=400, detail="Text query is empty")
 
     try:
         results: list | None = db.get_top_k_entries(text_query, 20)
         if not results:
-            logger.error("No results were found for the query.")
             raise HTTPException(status_code=404, detail="No results found")
 
         image_list_with_metadata: list = []
@@ -52,10 +46,9 @@ async def search(text_query: str):
 
         return response
     except Exception as e:
-        logger.error("An internal server error with status code 500 occurred.")
         raise HTTPException(status_code=500, detail="Internal sever error: " + str(e))
 
 if __name__ == "__main__":
     import uvicorn
-
+    
     uvicorn.run(app="server.endpoints:app", host="localhost", port=8000, reload=True)

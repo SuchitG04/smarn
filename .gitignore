@@ -1,12 +1,14 @@
-/smarn_screenshots
 /.venv
 **.ipynb_checkpoints/
 **/screenshots/
 **.idea/
-**/__pycache__/**
 *.db
 *.sqlite
 *.ipynb
+
+*/__pycache__
+*/*/__pycache__
+__pycache__
 
 ############### frontend ###############
 

@@ -28,20 +28,20 @@ def capture() -> str:
         try:
             subprocess.run(["grim", filepath], check=True)
         except subprocess.CalledProcessError as e:
-            logger.debug(f"Error executing grim: {e}")
+            logger.error(f"Error executing grim: {e}")
             exit(1)
         except FileNotFoundError:
-            logger.debug("grim was not found on this system. Error capturing screenshot.")
+            logger.error("grim was not found on this system. Error capturing screenshot.")
             exit(1)
         return filepath
     elif session_type == "X":  # X11 session requires maim
         try:
             subprocess.run(["maim", filepath], check=True)
         except subprocess.CalledProcessError as e:
-            logger.debug(f"Error executing maim: {e}")
+            logger.error(f"Error executing maim: {e}")
             exit(1)
         except FileNotFoundError:
-            logger.debug("maim was not found on this system. Error capturing screenshot.")
+            logger.error("maim was not found on this system. Error capturing screenshot.")
             exit(1)
         logger.info(f"SCREENSHOT FILEPATH: {filepath}")
         return filepath

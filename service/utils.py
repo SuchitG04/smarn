@@ -56,7 +56,10 @@ def compare_with_prev_img(curr_img: str) -> tuple[np.ndarray | None, float | Non
     if last_entry is None:
         logger.debug("No last entry detected.")
         return None, None
-    curr_img_emb = get_img_emb(curr_img)
+    try:
+        curr_img_emb = get_img_emb(curr_img)
+    except ValueError:
+        logger.error("The model or processor may not have been loaded properly.")
     last_entry_emb = deserialize(last_entry[0])
     similarity = cosine_similarity(curr_img_emb, last_entry_emb)
 
@@ -153,18 +156,42 @@ def modulate_interval(interval: float, cosine_similarity: float) -> float:
     Modulates the interval dynamically based on the cosine similarity value.
 
     Args:
-        interval: The interval to be modulated
-        cosine_similarity: The cosine similarity value between image embeddings.
+    interval: The interval to be modulated
+    cosine_similarity: The cosine similarity value between image embeddings.
+
     Returns:
-        interval: Modulated interval (necessarily not the different in value as the interval argument)
+    interval: Modulated interval
     """
-    delta = 0.25  # The change in interval
-    # Ensure interval remains between 0.25 and 5
+    possible_deltas = [0, 0.125, 0.25, 0.5]
+    
     if 0.25 <= interval <= 5:
-        if cosine_similarity > 0.925:  
-            interval = min(5, interval + delta) # High similarity, increase interval
+        if cosine_similarity > 0.925:
+            delta = possible_deltas[3]
+            interval = min(5, interval + delta)
             logger.info(f"High similarity, Increasing interval by {delta} minutes")
-        elif cosine_similarity < 0.6:  
-            interval = max(0.25, interval - delta) # Low similarity, decrease interval
-            logger.info(f"Low similarity, Increasing interval by {delta} minutes")
+        elif cosine_similarity < 0.6:
+            delta = possible_deltas[3]
+            interval = max(0.25, interval - delta)
+            logger.info(f"Low similarity, Decreasing interval by {delta} minutes")
+        elif 0.6 <= cosine_similarity <= 0.8:
+            delta = possible_deltas[2]
+            if cosine_similarity < 0.7:
+                interval = max(0.25, interval - delta)
+                logger.info(f"Moderate-low similarity, Decreasing interval by {delta} minutes")
+            else:
+                interval = min(5, interval + delta)
+                logger.info(f"Moderate-high similarity, Increasing interval by {delta} minutes")
+        elif 0.8 < cosine_similarity <= 0.925:
+            if 0.8 < cosine_similarity < 0.84 or 0.885 < cosine_similarity < 0.925:
+                delta = possible_deltas[1]
+                if cosine_similarity < 0.8625:
+                    interval = max(0.25, interval - delta)
+                    logger.info(f"Slightly low similarity, Decreasing interval by {delta} minutes")
+                else:
+                    interval = min(5, interval + delta)
+                    logger.info(f"Slightly high similarity, Increasing interval by {delta} minutes")
+            else:
+                delta = possible_deltas[0]
+                logger.info(f"Very close to threshold, No change in interval (delta: {delta})")
+    
     return interval
