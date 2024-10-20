@@ -2,21 +2,22 @@ import logging
 import os
 
 import numpy as np
-from models import device, model, processor
+from colpali_engine import ColPaliProcessor
+from models import State
 from PIL import Image
+from transformers import PreTrainedModel
 
 logger = logging.getLogger(__name__)
 
 
-def get_img_emb(path: str) -> np.ndarray:
+def get_img_emb(state: State, path: str) -> np.ndarray:
     """Get embeddings for an image given an image path. Raises ValueError if image path is invalid."""
+    model: PreTrainedModel = state["model"]  # type: ignore
+    processor: ColPaliProcessor = state["processor"]  # type: ignore
+    device: str = state["device"]  # type: ignore
+
     if not os.path.exists(path):
         raise ValueError("Image path does not exist!")
-
-    if device == "gpu" and (model is None or processor is None or device is None):
-        raise ValueError("Model or processor was not loaded properly.")
-    if device == "cpu" and (model is None or device is None):
-        raise ValueError("Model was not loaded properly.")
 
     if device == "gpu":
         processed_image = processor.process_images([Image.open(path)]).to(model.device)
@@ -28,10 +29,11 @@ def get_img_emb(path: str) -> np.ndarray:
     return model.encode_image(path)
 
 
-def get_text_emb(text: str) -> np.ndarray:
+def get_text_emb(state: State, text: str) -> np.ndarray:
     """Get embeddings for text."""
-    if model is None or processor is None or device is None:
-        raise ValueError("Model or processor was not loaded properly.")
+    model: PreTrainedModel = state["model"]  # type: ignore
+    processor: ColPaliProcessor = state["processor"]  # type: ignore
+    device: str = state["device"]  # type: ignore
 
     if device == "gpu":
         processed_text = processor.process_queries([text]).to(model.device)

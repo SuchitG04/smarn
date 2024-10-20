@@ -3,7 +3,6 @@ import sqlite3
 
 import numpy as np
 import sqlite_vec
-from vectors import get_img_emb, get_text_emb
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +58,8 @@ class Database:
     def insert_entry(
         self,
         image_path: str,
+        img_emb: np.ndarray,
         application_name: str = "",
-        embedding: np.ndarray | None = None,
     ) -> None:
         """
         Insert an image entry to the database using an image path or the image embedding if provided.
@@ -71,9 +70,6 @@ class Database:
             embedding (np.ndarray, optional): The image embedding.
         """
         try:
-            if embedding is None:
-                embedding = get_img_emb(image_path)
-
             self.conn.execute(
                 """
                     INSERT INTO img_info (image_path, application_name, timestamp)
@@ -89,7 +85,7 @@ class Database:
                     INSERT INTO vec_idx (embedding)
                     VALUES (?)
                 """,
-                (embedding,),
+                (img_emb,),
             )
             self.conn.commit()
             logger.info("Entry inserted into Vector Database.")
@@ -103,7 +99,7 @@ class Database:
             raise
 
     def get_top_k_entries(
-        self, query: str, k: int
+        self, text_emb: np.ndarray, k: int
     ) -> list[tuple[str, str, str, float]] | None:
         """
         Get top k similar image entries given a text query.
@@ -115,7 +111,6 @@ class Database:
             tuple | None: A tuple having info of top k entries or None if the database is empty.
         """
         try:
-            text_emb = get_text_emb(query)
             top_k_entries = self.conn.execute(
                 """
                     SELECT

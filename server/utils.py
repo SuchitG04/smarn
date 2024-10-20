@@ -5,7 +5,6 @@ import subprocess
 
 import numpy as np
 from db import Database
-from vectors import get_img_emb
 
 logger = logging.getLogger(__name__)
 
@@ -43,29 +42,28 @@ def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
     return np.dot(vec1, vec2) / (vec1_norm * vec2_norm)
 
 
-def compare_with_prev_img(curr_img: str) -> tuple[np.ndarray | None, float | None]:
+def compare_with_prev_img(
+    curr_img_emb: np.ndarray,
+) -> float | None:
     """
     Compares a given image to the last entry in the DB.
 
     Args:
-        curr_img (str): The image to compare with the last entry.
+        curr_img_emb (np.ndarray): The image emb to compare with the last entry.
     Returns:
-        np.ndarray : The image embeddings if the similarity is not above the threshold.
-
-    Note: Returns True if the images are same, None if there's no prev image, and the embedding if they are not similar.
+        float | None: The cosine similarity between the current image and the last entry.
     """
     last_entry = Database().get_last_entry()
+
     if last_entry is None:
         logger.debug("No last entry detected.")
-        return None, None
-    try:
-        curr_img_emb = get_img_emb(curr_img)
-    except ValueError:
-        logger.error("The model or processor may not have been loaded properly.")
+        return None
+
     last_entry_emb = deserialize(last_entry[0])
+
     similarity = cosine_similarity(curr_img_emb, last_entry_emb)
 
-    return curr_img_emb, similarity
+    return similarity
 
 
 def identify_session() -> str:

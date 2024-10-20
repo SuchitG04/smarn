@@ -4,14 +4,15 @@ import subprocess
 import time
 from datetime import datetime
 
-import numpy as np
 from db import Database
+from models import State
 from utils import (
     compare_with_prev_img,
     get_active_application_name,
     identify_session,
     modulate_interval,
 )
+from vectors import get_img_emb
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ def capture() -> str:
         exit(1)
 
 
-def service():
+def service(state: State) -> None:
     Ddb = Database()
     Ddb.create_tables()
     interval: float = 1
@@ -71,20 +72,21 @@ def service():
         current_screenshot_path: str = capture()
         time.sleep(interval * 60)
 
-        curr_emb = compare_with_prev_img(current_screenshot_path)
+        try:
+            curr_img_emb = get_img_emb(state, current_screenshot_path)
+        except ValueError:
+            logger.error("Error getting image embeddings.")
+            exit(1)
+
+        similarity = compare_with_prev_img(curr_img_emb)
         active_application_name = get_active_application_name()
 
-        # if the current embedding is an array, insert it into the database
-        if isinstance(curr_emb[0], np.ndarray):
-            Ddb.insert_entry(
-                current_screenshot_path, active_application_name, curr_emb[0]
-            )
-            if curr_emb[1] is not None:
-                interval = modulate_interval(interval, curr_emb[1])
-            else:
-                logger.error("Similarity value was not returned.")
+        if similarity is not None:
+            interval = modulate_interval(interval, similarity)
         else:
-            Ddb.insert_entry(current_screenshot_path, active_application_name)
-            logger.info("Database was found to be empty. No comparison initiated.")
+            logger.info("Similarity value was not returned. The database may be empty.")
+
+        # Insert the entry into the database
+        Ddb.insert_entry(current_screenshot_path, curr_img_emb, active_application_name)
 
         logger.info(f"CURRENT INTERVAL is {interval}")

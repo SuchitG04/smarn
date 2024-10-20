@@ -1,19 +1,17 @@
 import logging
+from typing import Optional, TypedDict
 
 import torch
 
-from .colpali import load_gpu_model
-from .jina_clip import load_cpu_model
+from .colpali import ColPaliProcessor, load_gpu_model
+from .jina_clip import PreTrainedModel, load_cpu_model
 
 logger = logging.getLogger(__name__)
 
-model = None
-processor = None
-device = None
 REQUIRED_MEMORY = 7.0
 
 
-def get_gpu_vram():
+def get_gpu_vram() -> float:
     """
     Returns the total VRAM available on the GPU in GB.
     """
@@ -23,7 +21,13 @@ def get_gpu_vram():
     )
 
 
-def load_model():
+class State(TypedDict):
+    model: Optional[PreTrainedModel]
+    processor: Optional[ColPaliProcessor]
+    device: Optional[str]
+
+
+def load_model() -> State:
     """
     Loads the appropriate model and processor based on the system's hardware.
 
@@ -38,18 +42,32 @@ def load_model():
          - The `device` variable is updated to "cpu".
          - The `processor` variable is not assigned as it is not required for the CPU model.
     """
-    global model, processor, device
-    if model is None:
-        try:
-            if torch.cuda.is_available() and get_gpu_vram() > REQUIRED_MEMORY:
-                model, processor = load_gpu_model()
-                device = "gpu"
-                logger.info("A GPU was detected on this device.")
-            else:
-                model = load_cpu_model()
-                device = "cpu"
-                logger.info("A CPU was detected on this device.")
-        except (RuntimeError, OSError) as e:
-            logger.debug(f"There was an error in loading the model - {e}")
-    else:
-        logger.info("Model is already loaded.")
+    state: State = {
+        "model": None,
+        "processor": None,
+        "device": None,
+    }
+
+    try:
+        if torch.cuda.is_available() and get_gpu_vram() > REQUIRED_MEMORY:
+            state["model"], state["processor"] = load_gpu_model()
+            state["device"] = "gpu"
+            logger.info("A GPU was detected on this device.")
+        else:
+            state["model"] = load_cpu_model()
+            state["device"] = "cpu"
+            logger.info("A CPU was detected on this device.")
+    except (RuntimeError, OSError) as e:
+        logger.debug(f"There was an error in loading the model - {e}")
+
+    if (
+        state["device"] is None
+        or state["device"] == "cpu"
+        and state["model"] is None
+        or state["device"] == "gpu"
+        and (state["model"] is None or state["processor"] is None)
+    ):
+        logger.error("Model or processor was not loaded properly.")
+        exit(1)
+
+    return state
