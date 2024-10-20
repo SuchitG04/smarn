@@ -1,8 +1,21 @@
+import os
+import sys
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from service.db import Database
 from .pydantic_models import ImageMetadata, QueryResponse
+
+# from pydantic_models import (  # Use this if you are trying to run this file directly.
+#     ImageMetadata,
+#     QueryResponse,
+# )
+
+
+# Adding the parent directory to sys.path to import db
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from db import Database
 
 app = FastAPI()
 db = Database()
@@ -15,9 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def greet():
     return {"message": "Hello from smarn"}
+
 
 @app.get("/search", response_model=QueryResponse)
 async def search(text_query: str):
@@ -48,7 +63,9 @@ async def search(text_query: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal sever error: " + str(e))
 
+
 if __name__ == "__main__":
     import uvicorn
-    
-    uvicorn.run(app="server.endpoints:app", host="localhost", port=8000, reload=True)
+
+    # WARN: The model gets loaded twice if the reload option is set to True.
+    uvicorn.run(app, host="localhost", port=8000)

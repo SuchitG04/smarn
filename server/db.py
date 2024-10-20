@@ -1,11 +1,12 @@
-import sqlite3
-import sqlite_vec
-import numpy as np
 import logging
+import sqlite3
 
-from .vectors import get_img_emb, get_text_emb
+import numpy as np
+import sqlite_vec
+from vectors import get_img_emb, get_text_emb
 
 logger = logging.getLogger(__name__)
+
 
 class Database:
     _instance = None
@@ -55,7 +56,12 @@ class Database:
             logger.error(f"Error creating tables: {e}")
             self.conn.rollback()
 
-    def insert_entry(self, image_path: str, application_name: str = "", embedding: np.ndarray | None = None) -> None:
+    def insert_entry(
+        self,
+        image_path: str,
+        application_name: str = "",
+        embedding: np.ndarray | None = None,
+    ) -> None:
         """
         Insert an image entry to the database using an image path or the image embedding if provided.
 
@@ -96,7 +102,9 @@ class Database:
             logger.error(f"Unexpected error while inserting entry: {e}")
             raise
 
-    def get_top_k_entries(self, query: str, k: int) -> list[tuple[str, str, str, float]] | None:
+    def get_top_k_entries(
+        self, query: str, k: int
+    ) -> list[tuple[str, str, str, float]] | None:
         """
         Get top k similar image entries given a text query.
 

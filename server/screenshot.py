@@ -1,12 +1,20 @@
+import logging
 import os
 import subprocess
+import time
 from datetime import datetime
 
-import logging
-
-from .utils import identify_session
+import numpy as np
+from db import Database
+from utils import (
+    compare_with_prev_img,
+    get_active_application_name,
+    identify_session,
+    modulate_interval,
+)
 
 logger = logging.getLogger(__name__)
+
 
 def capture() -> str:
     """
@@ -31,7 +39,9 @@ def capture() -> str:
             logger.error(f"Error executing grim: {e}")
             exit(1)
         except FileNotFoundError:
-            logger.error("grim was not found on this system. Error capturing screenshot.")
+            logger.error(
+                "grim was not found on this system. Error capturing screenshot."
+            )
             exit(1)
         return filepath
     elif session_type == "X":  # X11 session requires maim
@@ -41,7 +51,9 @@ def capture() -> str:
             logger.error(f"Error executing maim: {e}")
             exit(1)
         except FileNotFoundError:
-            logger.error("maim was not found on this system. Error capturing screenshot.")
+            logger.error(
+                "maim was not found on this system. Error capturing screenshot."
+            )
             exit(1)
         logger.info(f"SCREENSHOT FILEPATH: {filepath}")
         return filepath
@@ -49,3 +61,30 @@ def capture() -> str:
     else:
         logger.error("Unknown session detected. Screenshot not possible.")
         exit(1)
+
+
+def service():
+    Ddb = Database()
+    Ddb.create_tables()
+    interval: float = 1
+    while True:
+        current_screenshot_path: str = capture()
+        time.sleep(interval * 60)
+
+        curr_emb = compare_with_prev_img(current_screenshot_path)
+        active_application_name = get_active_application_name()
+
+        # if the current embedding is an array, insert it into the database
+        if isinstance(curr_emb[0], np.ndarray):
+            Ddb.insert_entry(
+                current_screenshot_path, active_application_name, curr_emb[0]
+            )
+            if curr_emb[1] is not None:
+                interval = modulate_interval(interval, curr_emb[1])
+            else:
+                logger.error("Similarity value was not returned.")
+        else:
+            Ddb.insert_entry(current_screenshot_path, active_application_name)
+            logger.info("Database was found to be empty. No comparison initiated.")
+
+        logger.info(f"CURRENT INTERVAL is {interval}")

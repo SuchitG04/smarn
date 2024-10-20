@@ -1,9 +1,11 @@
-import torch
 import logging
+
+import torch
 from colpali_engine.models import ColPali, ColPaliProcessor
 from transformers import BitsAndBytesConfig, PreTrainedModel
 
 logger = logging.getLogger(__name__)
+
 
 def load_gpu_model() -> tuple[PreTrainedModel, ColPaliProcessor]:
     """
@@ -17,6 +19,7 @@ def load_gpu_model() -> tuple[PreTrainedModel, ColPaliProcessor]:
     quantization_config = BitsAndBytesConfig(load_in_8bit=True)
     model_name = "vidore/colpali-v1.2"
 
+    logger.info("Loading Colpali with quantization.")
     model = ColPali.from_pretrained(
         model_name,
         torch_dtype=torch.float16,
@@ -34,5 +37,4 @@ def load_gpu_model() -> tuple[PreTrainedModel, ColPaliProcessor]:
     else:
         processor = processor_or_tuple
 
-    logger.info("Loading Colpali with quantization.")
     return model, processor

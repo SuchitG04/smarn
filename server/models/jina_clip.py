@@ -1,7 +1,9 @@
-from transformers import AutoModel, PreTrainedModel
 import logging
 
+from transformers import AutoModel, PreTrainedModel
+
 logger = logging.getLogger(__name__)
+
 
 def load_cpu_model() -> PreTrainedModel:
     """
