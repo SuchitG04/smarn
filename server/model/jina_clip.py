@@ -14,5 +14,16 @@ def load_cpu_model() -> PreTrainedModel:
     Returns:
         PreTrainedModel: The CLIP model.
     """
+    model: PreTrainedModel | None = None
     logger.info("Loading Pretrained JinaAI from Huggingface Transformers.")
-    return AutoModel.from_pretrained("jinaai/jina-clip-v1", trust_remote_code=True)
+    try:
+        model = AutoModel.from_pretrained("jinaai/jina-clip-v1", trust_remote_code=True)
+    except (RuntimeError, OSError) as e:
+        logger.debug(f"There was an error in loading the model - {e}")
+
+    if model is None:
+        logger.error("Model was not loaded properly.")
+        exit(1)
+
+    return model
+

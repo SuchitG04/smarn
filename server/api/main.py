@@ -4,7 +4,7 @@ import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from server.vectors import get_text_emb
+from server.model import get_text_embs
 
 from .pydantic_models import ImageMetadata, QueryResponse
 
@@ -19,7 +19,6 @@ from .pydantic_models import ImageMetadata, QueryResponse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from db import Database
-from models import load_model
 
 app = FastAPI()
 db = Database()
@@ -44,10 +43,7 @@ async def search(text_query: str):
         raise HTTPException(status_code=400, detail="Text query is empty")
 
     try:
-        state = load_model()
-
-        text_emb = get_text_emb(state, text_query)
-
+        text_emb = await get_text_embs(text_query)
         results: list | None = db.get_top_k_entries(text_emb, 20)
         if not results:
             raise HTTPException(status_code=404, detail="No results found")
@@ -73,7 +69,9 @@ async def search(text_query: str):
 
 
 if __name__ == "__main__":
-    import config.log_config  # setup logging
     import uvicorn
 
+    import config.log_config  # setup logging
+
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+

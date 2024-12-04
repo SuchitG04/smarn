@@ -5,14 +5,13 @@ import time
 from datetime import datetime
 
 from db import Database
-from models import State
+from model import get_image_embs
 from utils import (
     compare_with_prev_img,
     get_active_application_name,
     identify_session,
     modulate_interval,
 )
-from vectors import get_img_emb
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +63,7 @@ def capture() -> str:
         exit(1)
 
 
-def service(state: State) -> None:
+async def service() -> None:
     Ddb = Database()
     Ddb.create_tables()
     interval: float = 1
@@ -73,7 +72,7 @@ def service(state: State) -> None:
         time.sleep(interval * 60)
 
         try:
-            curr_img_emb = get_img_emb(state, current_screenshot_path)
+            curr_img_emb = await get_image_embs(current_screenshot_path)
         except ValueError:
             logger.error("Error getting image embeddings.")
             exit(1)
