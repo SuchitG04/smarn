@@ -85,7 +85,7 @@ class Database:
                     INSERT INTO vec_idx (embedding)
                     VALUES (?)
                 """,
-                (img_emb,),
+                (img_emb.astype(np.float32),),
             )
             self.conn.commit()
             logger.info("Entry inserted into Vector Database.")
@@ -139,6 +139,13 @@ class Database:
         except Exception as e:
             logger.error(f"Unexpected error during query execution: {e}")
             raise
+    
+    def test(self):
+            x = self.conn.execute(
+                """
+                SELECT count(*) FROM vec_idx
+                """)
+            print(x.fetchall())
 
     def get_last_entry(self) -> tuple[bytes, str] | None:
         """
@@ -170,3 +177,8 @@ class Database:
         except Exception as e:
             logger.error(f"Unexpected error while fetching the last entry: {e}")
             raise
+
+
+if __name__ == "__main__":
+    db = Database()
+    db.test()
