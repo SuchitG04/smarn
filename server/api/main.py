@@ -71,4 +71,3 @@ if __name__ == "__main__":
     import config.log_config  # setup logging
 
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)
-

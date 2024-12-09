@@ -3,7 +3,6 @@ import asyncio
 import config.log_config  # setup logging
 
 # import uvicorn
-from model.jina_clip import load_cpu_model
 from screenshot import service
 
 if __name__ == "__main__":
