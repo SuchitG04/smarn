@@ -42,30 +42,27 @@ async def search(text_query: str):
     if not text_query or text_query.strip() == "":
         raise HTTPException(status_code=400, detail="Text query is empty")
 
-    try:
-        text_emb = await get_text_embs(text_query)
-        results: list | None = db.get_top_k_entries(text_emb, 20)
-        if not results:
-            raise HTTPException(status_code=404, detail="No results found")
+    text_emb = await get_text_embs(text_query)
+    results: list | None = db.get_top_k_entries(text_emb, 20)
+    if not results:
+        raise HTTPException(status_code=404, detail="No results found")
 
-        image_list_with_metadata: list = []
+    image_list_with_metadata: list = []
 
-        for entry in results:
-            metadata = ImageMetadata(
-                image_path=entry[0],
-                application_name=entry[1],
-                timestamp=entry[2],
-                distance=entry[3],
-            )
-            image_list_with_metadata.append(metadata)
-
-        response = QueryResponse(
-            text_query=text_query, image_list_with_metadata=image_list_with_metadata
+    for entry in results:
+        metadata = ImageMetadata(
+            image_path=entry[0],
+            application_name=entry[1],
+            timestamp=entry[2],
+            distance=entry[3],
         )
+        image_list_with_metadata.append(metadata)
 
-        return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal sever error: " + str(e))
+    response = QueryResponse(
+        text_query=text_query, image_list_with_metadata=image_list_with_metadata
+    )
+
+    return response
 
 
 if __name__ == "__main__":
