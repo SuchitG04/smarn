@@ -1,13 +1,14 @@
 /** @type {import('tailwindcss').Config} */
-
-export const content = ["./index.html", "./src/**/*.ts"];
-export const theme = {
-  extend: {
-    colors: {
-      background: "#0a0b0e",
-      accent: "#4d86b6",
-      quiet: "#979eab",
+module.exports = {
+    content: [
+        './src/**/*.{js,jsx,ts,tsx}',
+    ],
+    theme: {
+        extend: {
+            fontFamily: {
+                geist: ["Geist", "sans-serif"]
+            }
+        },
     },
-  },
-};
-export const plugins = [];
+    plugins: [],
+};  

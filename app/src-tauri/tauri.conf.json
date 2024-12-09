@@ -1,8 +1,8 @@
 {
-  "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "app",
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "smarn",
   "version": "0.1.0",
-  "identifier": "com.app.app",
+  "identifier": "smarnapp",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -10,13 +10,11 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "title": "smarn",
-        "width": 1500,
-        "height": 1000
-        
+        "width": 800,
+        "height": 600
       }
     ],
     "security": {
