@@ -5,7 +5,7 @@ def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    file_handler = logging.FileHandler("../../app.log")
+    file_handler = logging.FileHandler("./app.log")
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter("[ %(levelname)s: %(asctime)s ] - %(message)s")
     file_handler.setFormatter(file_formatter)
