@@ -124,7 +124,7 @@ class Database:
                         AND k = ?
                     ORDER BY distance
                 """,
-                (text_emb, k),
+                (text_emb.astype(np.float32), k),
             ).fetchall()
             if top_k_entries:
                 logger.info(f"Fetched top {k} entries from the database.")
