@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from jina_clip import load_cpu_model
+from .jina_clip import load_cpu_model
 from transformers import PreTrainedModel
 
 logger = logging.getLogger(__name__)
