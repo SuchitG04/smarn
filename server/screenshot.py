@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess
 from datetime import datetime
+from PIL import Image
 
 from db import Database
 from model import get_image_embs
@@ -55,12 +56,26 @@ def capture() -> str:
                 "maim was not found on this system. Error capturing screenshot."
             )
             exit(1)
+
+        compress_image(filepath)
+
         logger.info(f"SCREENSHOT FILEPATH: {filepath}")
         return filepath
     # Gnome support to be added
     else:
         logger.error("Unknown session detected. Screenshot not possible.")
         exit(1)
+
+
+def compress_image(filepath: str, quality: int = 65) -> None:
+    """
+    Compress the image file while retaining the PNG format.
+    """
+    compressed_filepath = filepath
+    with Image.open(filepath) as img:
+        img = img.convert("RGB")
+        img.save(compressed_filepath, "PNG", optimize=True, quality=quality)
+        logger.info(f"Compressed PNG image saved at {compressed_filepath}")
 
 
 async def service() -> None:
