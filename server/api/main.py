@@ -3,6 +3,8 @@ import sys
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 from server.model import get_text_embs
 
@@ -19,6 +21,9 @@ from .pydantic_models import ImageMetadata, QueryResponse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from db import Database
+
+# Path to the screenshots directory
+SCREENSHOTS_DIR = Path(__file__).resolve().parent.parent / "screenshots"
 
 app = FastAPI()
 db = Database()
@@ -63,6 +68,21 @@ async def search(text_query: str):
     )
 
     return response
+
+
+@app.get("/images/{image_name}")
+async def serve_image(image_name: str):
+    """
+    Serve an image from the screenshots directory.
+    """
+    image_path = SCREENSHOTS_DIR / image_name
+
+    # Check if the requested file exists
+    if not image_path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Return the image as a response
+    return FileResponse(image_path)
 
 
 if __name__ == "__main__":
