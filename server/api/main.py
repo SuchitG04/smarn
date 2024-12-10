@@ -72,16 +72,11 @@ async def search(text_query: str):
 
 @app.get("/images/{image_name}")
 async def serve_image(image_name: str):
-    """
-    Serve an image from the screenshots directory.
-    """
     image_path = SCREENSHOTS_DIR / image_name
 
-    # Check if the requested file exists
     if not image_path.is_file():
         raise HTTPException(status_code=404, detail="Image not found")
 
-    # Return the image as a response
     return FileResponse(image_path)
 
 
