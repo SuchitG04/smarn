@@ -83,12 +83,23 @@ def identify_session() -> str:
         raise ValueError("Unknown session type")
 
 
+# TODO: Implement the function to get the active application name in an X11 session.
 def get_active_application_name_x11() -> str:
     """
-    Get the name of the active application from X11 using `xprop`.
+    Get the name of the active application from X11 using `xdotool`.
 
     Returns:
-        str: The name of the active application (window class) in an X11 session.
+        str: The name of the active application in an X11 session.
+    """
+    return ""
+
+
+def get_active_application_name_wayland() -> str:
+    """
+     Get the name of the active XWayland applications.
+
+    Returns:
+        str: The name of the active application in a Wayland session.
     """
     try:
         window_id_output = subprocess.run(
@@ -124,17 +135,6 @@ def get_active_application_name_x11() -> str:
         raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-# TODO: Implement this function to handle wayland applications
-def get_active_application_name_wayland() -> str:
-    """
-     Get the name of the active application on Wayland.
-
-    Returns:
-        str: The name of the active application in a Wayland session.
-    """
-    return ""
-
-
 def get_active_application_name() -> str:
     """
     Get the name of the active application, depending on the display server.
@@ -145,13 +145,12 @@ def get_active_application_name() -> str:
     session = identify_session()
     if session == "W":
         try:
-            # Try to get the application name using X11 function to check if it's running on XWayland
-            return get_active_application_name_x11()
+            return get_active_application_name_wayland()
         except RuntimeError:
             logger.debug(
-                "Wayland application detected: Could not retrieve application name."
+                "Failed to retrieve application name because the session is not XWayland."
             )
-            return get_active_application_name_wayland()
+            return ""
     elif session == "X":
         try:
             return get_active_application_name_x11()
