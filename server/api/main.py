@@ -5,11 +5,11 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic_models import ImageMetadata, QueryResponse
 
 # Adding the parent directory to sys.path to import db and model
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from api.pydantic_models import ImageMetadata, QueryResponse
 from db import Database
 from model import get_text_embs
 

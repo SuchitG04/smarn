@@ -1,11 +1,15 @@
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from jina_clip import load_cpu_model
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from transformers import PreTrainedModel
+
+from model.jina_clip import load_cpu_model
 
 logger = logging.getLogger(__name__)
 model: PreTrainedModel | None = None
