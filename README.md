@@ -15,3 +15,24 @@ We want to give Linux users a flavour of convenience without having to supply te
 - An `sqlite-vec` database to store embeddings and image-paths as well as to search for them. ([sqlite-vec](https://github.com/asg017/sqlite-vec))
 - Asynchronus running of services to ensure maximum concurrency and non-blocking operations.
 - An intelligent, self-rate-controlling mechanism that reduces/increases the rate of screenshot captures based on similarity of the previous and current screenshots (hence reducing compute and wastage of storage space).
+
+## Why you need smarn
+
+Forgot which website you saw those amazing shoes on? Know the description of a guy in a YouTube video you watched, but forgot everything else about the video? Ever wished for a personal archive of your on-screen activities that you could search as easily as Googling something? Here's why **smarn** is the answer:
+
+1. **Never Lose Track of What You Saw**  
+   Forgot which website had that perfect pair of shoes? smarn can help you recall it by searching with a description like _"red sneakers website."_
+
+![Searching for 'red sneakers'](README_assets/sneakers.png)
+
+2. **Search Screenshots with Natural Language**  
+   Want to find a YouTube video you were watching but only remember a vague description like _"a guy explaining quantum mechanics"?_ smarn can locate the relevant screenshots for you.
+
+3. **Privacy-Friendly**  
+   Unlike proprietary tools that siphon your data, smarn is open-source and Linux-exclusive, ensuring your activity stays local and secure.
+
+4. **Storage Optimization**  
+   By analyzing the similarity of successive screenshots, smarn adjusts its capture frequency dynamically, conserving storage space and compute power.
+
+5. **Convenient and Efficient**  
+   With a sleek Tauri-based interface and asynchronous services, smarn seamlessly integrates into your workflow without slowing you down.
