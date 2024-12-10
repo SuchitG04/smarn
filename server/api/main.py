@@ -1,26 +1,17 @@
 import os
 import sys
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pathlib import Path
+from pydantic_models import ImageMetadata, QueryResponse
 
-from server.model import get_text_embs
-
-from .pydantic_models import ImageMetadata, QueryResponse
-
-# INFO:  Use this if you are trying to run this file directly.
-# from pydantic_models import (
-#     ImageMetadata,
-#     QueryResponse,
-# )
-
-
-# Adding the parent directory to sys.path to import db
+# Adding the parent directory to sys.path to import db and model
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from db import Database
+from model import get_text_embs
 
 # Path to the screenshots directory
 SCREENSHOTS_DIR = Path(__file__).resolve().parent.parent / "screenshots"
