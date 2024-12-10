@@ -4,7 +4,6 @@ import struct
 import subprocess
 
 import numpy as np
-
 from db import Database
 
 logger = logging.getLogger(__name__)
@@ -149,10 +148,15 @@ def get_active_application_name() -> str:
             # Try to get the application name using X11 function to check if it's running on XWayland
             return get_active_application_name_x11()
         except RuntimeError:
-            logger.debug("Functionality yet to implement.")
+            logger.debug(
+                "Wayland application detected: Could not retrieve application name."
+            )
             return get_active_application_name_wayland()
     elif session == "X":
-        return get_active_application_name_x11()
+        try:
+            return get_active_application_name_x11()
+        except RuntimeError:
+            return ""
     else:
         raise ValueError("Unknown session type")
 
