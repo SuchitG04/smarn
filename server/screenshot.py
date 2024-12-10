@@ -1,7 +1,7 @@
+import asyncio
 import logging
 import os
 import subprocess
-import time
 from datetime import datetime
 
 from db import Database
@@ -68,8 +68,9 @@ async def service() -> None:
     Ddb.create_tables()
     interval: float = 1
     while True:
+        logger.info("Capturing screenshot...")
         current_screenshot_path: str = capture()
-        time.sleep(interval * 60)
+        await asyncio.sleep(interval * 60)
 
         try:
             curr_img_emb = await get_image_embs(current_screenshot_path)
@@ -89,3 +90,9 @@ async def service() -> None:
         Ddb.insert_entry(current_screenshot_path, curr_img_emb, active_application_name)
 
         logger.info(f"CURRENT INTERVAL is {interval}")
+
+
+if __name__ == "__main__":
+    import config.log_config  # setup logging
+
+    asyncio.run(service())
