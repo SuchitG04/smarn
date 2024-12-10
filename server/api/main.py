@@ -39,7 +39,7 @@ async def search(text_query: str):
         raise HTTPException(status_code=400, detail="Text query is empty")
 
     text_emb = await get_text_embs(text_query)
-    results: list | None = db.get_top_k_entries(text_emb, 20)
+    results: list | None = db.get_top_k_entries(text_emb, 9)
     if not results:
         raise HTTPException(status_code=404, detail="No results found")
 
