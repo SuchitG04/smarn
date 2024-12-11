@@ -1,18 +1,18 @@
 import os
 import sys
 from pathlib import Path
-import logging
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+# Adding the parent directory to sys.path to import db and model
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from api.models import ImageMetadata, QueryResponse
 from db import Database
 from model import get_text_embs
 
-# Adding the parent directory to sys.path to import db and model
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Path to the screenshots directory
 SCREENSHOTS_DIR = Path(__file__).resolve().parent.parent / "screenshots"
@@ -74,5 +74,7 @@ async def serve_image(image_name: str):
 
 if __name__ == "__main__":
     import uvicorn
+
+    import config.log_config  # setup logging
 
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)
