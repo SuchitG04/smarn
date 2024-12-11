@@ -83,7 +83,6 @@ def identify_session() -> str:
         raise ValueError("Unknown session type")
 
 
-# TODO: Implement the function to get the active application name in an X11 session.
 def get_active_application_name_x11() -> str:
     """
     Get the name of the active application from X11 using `xdotool`.
@@ -91,7 +90,10 @@ def get_active_application_name_x11() -> str:
     Returns:
         str: The name of the active application in an X11 session.
     """
-    return ""
+    application_name = subprocess.run(["xdotool", "getactivewindow", "getwindowname"], capture_output=True, text=True, check=True).stdout.strip()
+
+    logger.info(f"{application_name} detected")
+    return application_name
 
 
 def get_active_application_name_wayland() -> str:
