@@ -1,17 +1,22 @@
 import os
 import sys
 from pathlib import Path
+import logging
+import config.log_config
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-# Adding the parent directory to sys.path to import db and model
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from api.pydantic_models import ImageMetadata, QueryResponse
+from api.models import ImageMetadata, QueryResponse
 from db import Database
 from model import get_text_embs
+
+# Added logger
+logger = logging.getLogger(__name__)
+
+# Adding the parent directory to sys.path to import db and model
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Path to the screenshots directory
 SCREENSHOTS_DIR = Path(__file__).resolve().parent.parent / "screenshots"
@@ -36,11 +41,13 @@ async def greet():
 @app.get("/search", response_model=QueryResponse)
 async def search(text_query: str):
     if not text_query or text_query.strip() == "":
+        logger.error("Search API - Empty text query.")
         raise HTTPException(status_code=400, detail="Text query is empty")
 
     text_emb = await get_text_embs(text_query)
     results: list | None = db.get_top_k_entries(text_emb, 9)
     if not results:
+        logger.error("Search API - No results found.")
         raise HTTPException(status_code=404, detail="No results found")
 
     image_list_with_metadata: list = []
@@ -66,6 +73,7 @@ async def serve_image(image_name: str):
     image_path = SCREENSHOTS_DIR / image_name
 
     if not image_path.is_file():
+        logger.error("Search API - Image not found.")
         raise HTTPException(status_code=404, detail="Image not found")
 
     return FileResponse(image_path)
@@ -73,7 +81,5 @@ async def serve_image(image_name: str):
 
 if __name__ == "__main__":
     import uvicorn
-
-    import config.log_config  # setup logging
 
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)
