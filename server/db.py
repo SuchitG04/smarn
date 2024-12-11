@@ -92,7 +92,7 @@ class Database:
         except sqlite3.Error as e:
             logger.error(f"Error inserting entry: {e}")
             self.conn.rollback()
-        except ValueError as e:
+        except ValueError:
             logger.error("The model or processor may not have been loaded properly.")
         except Exception as e:
             logger.error(f"Unexpected error while inserting entry: {e}")
@@ -134,18 +134,11 @@ class Database:
         except sqlite3.Error as e:
             logger.error(f"Error fetching top {k} entries: {e}")
             return None
-        except ValueError as e:
+        except ValueError:
             logger.error("The model or processor may not have been loaded properly.")
         except Exception as e:
             logger.error(f"Unexpected error during query execution: {e}")
             raise
-    
-    def test(self):
-            x = self.conn.execute(
-                """
-                SELECT count(*) FROM vec_idx
-                """)
-            print(x.fetchall())
 
     def get_last_entry(self) -> tuple[bytes, str] | None:
         """
@@ -178,7 +171,24 @@ class Database:
             logger.error(f"Unexpected error while fetching the last entry: {e}")
             raise
 
+    def purge_entries(self) -> None:
+        """
+        Purge all entries from the database.
+
+        Clears all records from both `img_info` and `vec_idx` tables.
+        """
+        try:
+            self.conn.execute("DELETE FROM img_info;")
+            self.conn.execute("DELETE FROM vec_idx;")
+            self.conn.commit()
+            logger.info("All entries purged from the database.")
+        except sqlite3.Error as e:
+            logger.error(f"Error purging entries: {e}")
+            self.conn.rollback()
+        except Exception as e:
+            logger.error(f"Unexpected error during purge: {e}")
+            raise
+
 
 if __name__ == "__main__":
     db = Database()
-    db.test()

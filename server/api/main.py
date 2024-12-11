@@ -13,7 +13,6 @@ from api.models import ImageMetadata, QueryResponse
 from db import Database
 from model import get_text_embs
 
-
 # Path to the screenshots directory
 SCREENSHOTS_DIR = Path(__file__).resolve().parent.parent / "screenshots"
 
