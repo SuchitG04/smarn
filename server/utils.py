@@ -4,6 +4,7 @@ import struct
 import subprocess
 
 import numpy as np
+
 from db import Database
 
 logger = logging.getLogger(__name__)
@@ -83,83 +84,26 @@ def identify_session() -> str:
         raise ValueError("Unknown session type")
 
 
-def get_active_application_name_x11() -> str:
-    """
-    Get the name of the active application from X11 using `xdotool`.
-
-    Returns:
-        str: The name of the active application in an X11 session.
-    """
-    application_name = subprocess.run(["xdotool", "getactivewindow", "getwindowname"], capture_output=True, text=True, check=True).stdout.strip()
-
-    logger.info(f"{application_name} detected")
-    return application_name
-
-
-def get_active_application_name_wayland() -> str:
-    """
-     Get the name of the active XWayland applications.
-
-    Returns:
-        str: The name of the active application in a Wayland session.
-    """
-    try:
-        window_id_output = subprocess.run(
-            ["xprop", "-root", "_NET_ACTIVE_WINDOW"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
-
-        # Extract the window ID
-        window_id = window_id_output.split()[-1]
-
-        wm_class_output = subprocess.run(
-            ["xprop", "-id", window_id, "WM_CLASS"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
-
-        # Extract the window class name
-        wm_class = wm_class_output.split("=")[1].strip().replace('"', "").split(", ")[0]
-
-        return wm_class
-
-    except subprocess.CalledProcessError as e:
-        logger.error("Failed to retrieve window information.")
-        raise RuntimeError(f"Failed to retrieve window information from X11: {e}")
-    except IndexError as e:
-        logger.error("Unexpected output.")
-        raise RuntimeError(f"Unexpected output format from xprop command: {e}")
-    except Exception as e:
-        logger.error("Unexpected error.")
-        raise RuntimeError(f"An unexpected error occurred: {e}")
-
-
 def get_active_application_name() -> str:
     """
-    Get the name of the active application, depending on the display server.
+    Get the name of the active application.
 
     Returns:
-        str: The name of the active application for X11 or Wayland.
+        str: The name of the active application for X11 or XWayland.
     """
-    session = identify_session()
-    if session == "W":
-        try:
-            return get_active_application_name_wayland()
-        except RuntimeError:
-            logger.debug(
-                "Failed to retrieve application name because the session is not XWayland."
-            )
-            return ""
-    elif session == "X":
-        try:
-            return get_active_application_name_x11()
-        except RuntimeError:
-            return ""
-    else:
-        raise ValueError("Unknown session type")
+    try:
+        application_name = subprocess.run(
+            ["xdotool", "getactivewindow", "getwindowclassname"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+        logger.info(f"{application_name} detected")
+        return application_name
+    except subprocess.CalledProcessError:
+        logger.error("Failed to get the active application name.")
+        return ""
 
 
 def modulate_interval(interval: float, cosine_similarity: float) -> float:
@@ -183,3 +127,7 @@ def modulate_interval(interval: float, cosine_similarity: float) -> float:
             logger.info(f"Low similarity; Decreasing interval by {delta} minutes")
 
     return interval
+
+
+if __name__ == "__main__":
+    print(get_active_application_name())
