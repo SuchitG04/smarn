@@ -5,7 +5,6 @@ asttokens
 certifi
 charset-normalizer
 click
-colpali_engine
 comm
 debugpy
 decorator
