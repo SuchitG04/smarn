@@ -40,3 +40,5 @@ transformers==4.48.1
 typing-extensions==4.12.2
 urllib3==2.3.0
 uvicorn==0.34.0
+customtkinter==5.2.1
+pyinstaller==6.3.0

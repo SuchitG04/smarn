@@ -9,7 +9,6 @@ We want to give Linux users a flavour of convenience without having to supply te
 
 ## What does it use?
 
-- `tauri` for a supple, sleek and minimalist user interface. ([tauri](https://github.com/tauri-apps/tauri))
 - The `transformers` library; more specifically the jinaai/jina-clip-v1 model - for text and image-embedding. ([transformers](https://github.com/huggingface/transformers))
 - Two FastAPI services that provide functions corresponding to text and image embeddings, searching using the said embeddings, and exposing screenshots to the interface. ([FastAPI](https://github.com/fastapi/fastapi))
 - An `sqlite-vec` database to store embeddings and image-paths as well as to search for them. ([sqlite-vec](https://github.com/asg017/sqlite-vec))
