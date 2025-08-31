@@ -1,9 +1,8 @@
 from typing import List, Dict, Any
 from .db import Database
-from .model import JinaClipModel
+from .model import model
 
 db = Database()
-model = JinaClipModel()
 
 
 def search_images(text_query: str) -> List[Dict[str, Any]]:
