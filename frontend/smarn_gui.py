@@ -5,13 +5,14 @@ from PIL import Image, ImageTk
 import threading
 from datetime import datetime
 from pathlib import Path
+import logging
 
-# Add project root to sys.path to allow importing from `core`
+# Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from core.main import search_images
+from config.log_config import setup_logging
 
-# Configuration
+# Config
 SCREENSHOTS_DIR = Path.home() / ".smarn" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -19,53 +20,68 @@ SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 class SmarnApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+        self.logger = logging.getLogger(__name__)
 
-        # Configure window
-        self.title("smarn - Linux Screen Recall")
-        self.geometry("1200x800")
+        # --- Load bundled fonts ---
+        FONTS_DIR = Path(__file__).parent.parent / "fonts"
+        regular_path = FONTS_DIR / "Roboto-Regular.ttf"
+        bold_path = FONTS_DIR / "Roboto-Bold.ttf"
 
-        # Configure grid layout
+        try:
+            ctk.FontManager.load_font(str(regular_path))
+            ctk.FontManager.load_font(str(bold_path))
+            self.logger.info("Roboto fonts loaded successfully.")
+        except Exception as e:
+            self.logger.error(f"Could not load fonts: {e}", exc_info=True)
+
+        # --- WINDOW CONFIG ---
+        self.app_name = "Smarn"
+        self.title(f"{self.app_name} - Your screen, recalled.")
+        self.geometry("1280x850")
+        self.minsize(1000, 700)
+
+        # Layout grid
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)  # results frame takes most space
 
-        # Create search frame
-        self.search_frame = ctk.CTkFrame(self, corner_radius=0)
-        self.search_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        # --- FONTS ---
+        self.title_font = ctk.CTkFont(family="Roboto", size=55, weight="bold")
+        self.search_font = ctk.CTkFont(family="Roboto", size=18)
+        self.metadata_font = ctk.CTkFont(family="Roboto", size=13)
+        self.status_font = ctk.CTkFont(family="Roboto", size=16)
 
-        # Search entry
-        self.search_entry = ctk.CTkEntry(
-            self.search_frame,
-            placeholder_text="Search your screen history...",
-            width=600,
-            height=40,
-            font=("Arial", 14),
+        # --- TITLE ---
+        self.title_label = ctk.CTkLabel(
+            self,
+            text=self.app_name,
+            font=self.title_font,
+            text_color="#1E90FF",
         )
-        self.search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.title_label.grid(row=0, column=0, pady=(30, 10), sticky="n")
+
+        # --- SEARCH BAR ---
+        search_frame = ctk.CTkFrame(self, fg_color="#222222")
+        search_frame.grid(row=1, column=0, padx=40, pady=10, sticky="ew")
+        search_frame.grid_columnconfigure(0, weight=1)
+
+        self.search_entry = ctk.CTkEntry(
+            search_frame,
+            placeholder_text="Search your screen history...",
+            font=self.search_font,
+            height=55,
+        )
+        self.search_entry.grid(row=0, column=0, padx=20, pady=15, sticky="ew")
         self.search_entry.bind("<Return>", lambda e: self.search())
 
-        # Search button
-        self.search_button = ctk.CTkButton(
-            self.search_frame, text="Search", command=self.search, height=40, width=100
-        )
-        self.search_button.pack(side="right")
+        # --- RESULTS ---
+        self.results_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.results_frame.grid(row=2, column=0, padx=30, pady=20, sticky="nsew")
+        self.results_frame.grid_columnconfigure((0, 1, 2), weight=1, uniform="cols")
 
-        # Results frame
-        self.results_frame = ctk.CTkScrollableFrame(self, corner_radius=0)
-        self.results_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
-        self.results_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        # Status label (dynamic)
+        self.status_label = None
 
-        # Status bar
-        self.status_var = ctk.StringVar(value="Ready")
-        self.status_bar = ctk.CTkLabel(
-            self,
-            textvariable=self.status_var,
-            anchor="w",
-            font=("Arial", 10),
-            text_color=("gray50", "gray70"),
-        )
-        self.status_bar.grid(row=2, column=0, sticky="ew", padx=10, pady=(0, 5))
-
-        # Initial state
+        # Internal state
         self.search_in_progress = False
         self.images = []
 
@@ -75,19 +91,25 @@ class SmarnApp(ctk.CTk):
 
         query = self.search_entry.get().strip()
         if not query:
-            self.status_var.set("Please enter a search query")
             return
 
         self.search_in_progress = True
-        self.status_var.set(f"Searching for: {query}...")
-        self.search_button.configure(state="disabled")
+        self.search_entry.configure(state="disabled")
 
         # Clear previous results
         for widget in self.results_frame.winfo_children():
             widget.destroy()
         self.images.clear()
 
-        # Start search in a separate thread
+        # Show searching status
+        self.status_label = ctk.CTkLabel(
+            self.results_frame,
+            text=f"Searching for: {query}...",
+            font=self.status_font,
+            text_color="gray70",
+        )
+        self.status_label.pack(pady=80)
+
         threading.Thread(
             target=self._perform_search, args=(query,), daemon=True
         ).start()
@@ -95,80 +117,78 @@ class SmarnApp(ctk.CTk):
     def _perform_search(self, query):
         try:
             results = search_images(query)
-            # Schedule UI update on the main thread
             self.after(0, self._display_results, results)
-
         except Exception as e:
-            self.after(0, self._handle_error, f"Error searching: {str(e)}")
+            self.after(0, self._handle_error, f"Error: {e}")
         finally:
             self.after(0, self._search_complete)
 
     def _display_results(self, results):
+        if self.status_label:
+            self.status_label.destroy()
+
         if not results:
-            self.status_var.set("No results found")
+            self.status_label = ctk.CTkLabel(
+                self.results_frame,
+                text="No results found",
+                font=self.status_font,
+                text_color="gray70",
+            )
+            self.status_label.pack(pady=80)
             return
 
-        self.status_var.set(f"Found {len(results)} results")
-
         for idx, item in enumerate(results):
-            row = idx // 3
-            col = idx % 3
-
-            # Create a frame for each result
-            result_frame = ctk.CTkFrame(self.results_frame, corner_radius=5)
-            result_frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+            row, col = divmod(idx, 3)
 
             try:
-                # Load and display image directly from the path
                 image_path = item["image_path"]
                 if not os.path.exists(image_path):
-                    print(f"Image not found at path: {image_path}")
                     continue
 
-                # Load and resize image
-                img = Image.open(image_path)
-                img.thumbnail((300, 200))
-                photo = ImageTk.PhotoImage(img)
+                # Result card
+                result_frame = ctk.CTkFrame(self.results_frame)
+                result_frame.grid(row=row, column=col, padx=15, pady=15, sticky="nsew")
 
-                # Store reference to prevent garbage collection
+                # Thumbnail
+                img = Image.open(image_path)
+                img.thumbnail((380, 260))
+                photo = ImageTk.PhotoImage(img)
                 self.images.append(photo)
 
-                # Create image label
                 img_label = ctk.CTkLabel(result_frame, image=photo, text="")
-                img_label.pack(padx=5, pady=5)
+                img_label.pack(padx=10, pady=10)
 
-                # Add metadata
+                # Metadata
                 timestamp = datetime.fromisoformat(item["timestamp"])
                 metadata_text = (
-                    f"App: {item['application_name']}\n"
-                    f"Time: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
-                    f"Score: {1 - item['distance']:.2f}"
+                    f"{item['application_name']} · {timestamp.strftime('%b %d, %H:%M')}"
                 )
-
                 metadata_label = ctk.CTkLabel(
                     result_frame,
                     text=metadata_text,
-                    font=("Arial", 10),
-                    justify="left",
-                    anchor="w",
+                    font=self.metadata_font,
+                    text_color="gray80",
                 )
-                metadata_label.pack(padx=5, pady=(0, 5), fill="x")
+                metadata_label.pack(pady=(0, 10))
 
             except Exception as e:
-                print(f"Error displaying image: {e}")
+                self.logger.error(
+                    f"Error displaying image {item.get('image_path')}: {e}"
+                )
 
     def _handle_error(self, message):
-        self.status_var.set(message)
+        if self.status_label:
+            self.status_label.configure(text=message)
 
     def _search_complete(self):
         self.search_in_progress = False
-        self.search_button.configure(state="normal")
+        self.search_entry.configure(state="normal")
 
 
 def main():
+    setup_logging()
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
-
     app = SmarnApp()
     app.mainloop()
 
