@@ -6,7 +6,7 @@ from datetime import datetime
 from PIL import Image
 
 from .db import Database
-from .model import JinaClipModel
+from .model import model
 from .utils import (
     compare_with_prev_img,
     get_active_application_name,
@@ -80,7 +80,6 @@ def compress_image(filepath: str, quality: int = 65) -> None:
 
 def service() -> None:
     db = Database()
-    model = JinaClipModel()
     db.create_tables()
     interval: float = 1
     while True:
