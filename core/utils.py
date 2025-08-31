@@ -5,7 +5,7 @@ import subprocess
 
 import numpy as np
 
-from db import Database
+from .db import Database
 
 logger = logging.getLogger(__name__)
 

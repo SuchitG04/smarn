@@ -1,13 +1,13 @@
-import asyncio
 import logging
 import os
 import subprocess
+import time
 from datetime import datetime
 from PIL import Image
 
-from db import Database
-from model import get_image_embs
-from utils import (
+from .db import Database
+from .model import JinaClipModel
+from .utils import (
     compare_with_prev_img,
     get_active_application_name,
     identify_session,
@@ -78,17 +78,18 @@ def compress_image(filepath: str, quality: int = 65) -> None:
         logger.info(f"Compressed PNG image saved at {compressed_filepath}")
 
 
-async def service() -> None:
-    Ddb = Database()
-    Ddb.create_tables()
+def service() -> None:
+    db = Database()
+    model = JinaClipModel()
+    db.create_tables()
     interval: float = 1
     while True:
         logger.info("Capturing screenshot...")
         current_screenshot_path: str = capture()
-        await asyncio.sleep(interval * 60)
+        time.sleep(interval * 60)
 
         try:
-            curr_img_emb = await get_image_embs(current_screenshot_path)
+            curr_img_emb = model.get_img_embs(Image.open(current_screenshot_path))
         except ValueError:
             logger.error("Error getting image embeddings.")
             exit(1)
@@ -102,12 +103,10 @@ async def service() -> None:
             logger.info("Similarity value was not returned. The database may be empty.")
 
         # Insert the entry into the database
-        Ddb.insert_entry(current_screenshot_path, curr_img_emb, active_application_name)
+        db.insert_entry(current_screenshot_path, curr_img_emb, active_application_name)
 
         logger.info(f"CURRENT INTERVAL is {interval}")
 
 
 if __name__ == "__main__":
-    import config.log_config  # setup logging
-
-    asyncio.run(service())
+    service()

@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+import threading
 
 import numpy as np
 import sqlite_vec
@@ -9,29 +10,39 @@ logger = logging.getLogger(__name__)
 
 class Database:
     _instance = None
+    _lock = threading.Lock()
 
     def __init__(self, db_file: str = "database.sqlite"):
         self.db_file = db_file
-        try:
-            self.conn = sqlite3.connect(self.db_file)
-            self.conn.enable_load_extension(True)
-            sqlite_vec.load(self.conn)
-            self.conn.enable_load_extension(False)
-            logger.info("Vector Database file created.")
-        except sqlite3.Error as e:
-            logger.error(f"Error initializing the database: {e}")
-            raise
+        self.thread_local = threading.local()
 
     def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            logger.info("SQLite Vector Database initialized.")
-            cls._instance = super().__new__(cls)
+        with cls._lock:
+            if cls._instance is None:
+                logger.info("SQLite Vector Database singleton created.")
+                cls._instance = super().__new__(cls)
         return cls._instance
+
+    def _get_connection(self):
+        """Get a thread-local database connection."""
+        if not hasattr(self.thread_local, "conn"):
+            try:
+                conn = sqlite3.connect(self.db_file)
+                conn.enable_load_extension(True)
+                sqlite_vec.load(conn)
+                conn.enable_load_extension(False)
+                self.thread_local.conn = conn
+                logger.info(f"New DB connection for thread {threading.get_ident()}")
+            except sqlite3.Error as e:
+                logger.error(f"Error initializing the database connection: {e}")
+                raise
+        return self.thread_local.conn
 
     def create_tables(self) -> None:
         """Create required tables if they do not exist."""
+        conn = self._get_connection()
         try:
-            self.conn.execute(
+            conn.execute(
                 """
                     CREATE TABLE IF NOT EXISTS img_info (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +52,7 @@ class Database:
                     );
                 """
             )
-            self.conn.execute(
+            conn.execute(
                 """
                     CREATE VIRTUAL TABLE IF NOT EXISTS vec_idx USING vec0 (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,11 +60,11 @@ class Database:
                     );
                 """
             )
-            self.conn.commit()
+            conn.commit()
             logger.info("Tables created.")
         except sqlite3.Error as e:
             logger.error(f"Error creating tables: {e}")
-            self.conn.rollback()
+            conn.rollback()
 
     def insert_entry(
         self,
@@ -69,29 +80,30 @@ class Database:
             application_name (str): The application name.
             embedding (np.ndarray, optional): The image embedding.
         """
+        conn = self._get_connection()
         try:
-            self.conn.execute(
+            conn.execute(
                 """
                     INSERT INTO img_info (image_path, application_name, timestamp)
-                    VALUES (?, ?, datetime())
+                    VALUES (?, ?, datetime('now'))
                 """,
                 (
                     image_path,
                     application_name,
                 ),
             )
-            self.conn.execute(
+            conn.execute(
                 """
                     INSERT INTO vec_idx (embedding)
                     VALUES (?)
                 """,
                 (img_emb.astype(np.float32),),
             )
-            self.conn.commit()
+            conn.commit()
             logger.info("Entry inserted into Vector Database.")
         except sqlite3.Error as e:
             logger.error(f"Error inserting entry: {e}")
-            self.conn.rollback()
+            conn.rollback()
         except ValueError:
             logger.error("The model or processor may not have been loaded properly.")
         except Exception as e:
@@ -110,8 +122,9 @@ class Database:
         Returns:
             tuple | None: A tuple having info of top k entries or None if the database is empty.
         """
+        conn = self._get_connection()
         try:
-            top_k_entries = self.conn.execute(
+            top_k_entries = conn.execute(
                 """
                     SELECT
                         img_info.image_path,
@@ -147,8 +160,9 @@ class Database:
         Returns:
             tuple | None: A tuple of (raw bytes (embeddings), image path) or `None` if the database is empty.
         """
+        conn = self._get_connection()
         try:
-            last_entry = self.conn.execute(
+            last_entry = conn.execute(
                 """
                     SELECT
                         vec_idx.embedding,
@@ -177,14 +191,15 @@ class Database:
 
         Clears all records from both `img_info` and `vec_idx` tables.
         """
+        conn = self._get_connection()
         try:
-            self.conn.execute("DELETE FROM img_info;")
-            self.conn.execute("DELETE FROM vec_idx;")
-            self.conn.commit()
+            conn.execute("DELETE FROM img_info;")
+            conn.execute("DELETE FROM vec_idx;")
+            conn.commit()
             logger.info("All entries purged from the database.")
         except sqlite3.Error as e:
             logger.error(f"Error purging entries: {e}")
-            self.conn.rollback()
+            conn.rollback()
         except Exception as e:
             logger.error(f"Unexpected error during purge: {e}")
             raise

@@ -1,13 +1,17 @@
 import os
+import sys
 import customtkinter as ctk
 from PIL import Image, ImageTk
-import requests
 import threading
 from datetime import datetime
 from pathlib import Path
 
+# Add project root to sys.path to allow importing from `core`
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from core.main import search_images
+
 # Configuration
-API_BASE_URL = "http://localhost:8000"
 SCREENSHOTS_DIR = Path.home() / ".smarn" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -90,28 +94,23 @@ class SmarnApp(ctk.CTk):
 
     def _perform_search(self, query):
         try:
-            response = requests.get(
-                f"{API_BASE_URL}/search", params={"text_query": query}
-            )
-            response.raise_for_status()
-            results = response.json()
-
+            results = search_images(query)
             # Schedule UI update on the main thread
             self.after(0, self._display_results, results)
 
-        except requests.RequestException as e:
+        except Exception as e:
             self.after(0, self._handle_error, f"Error searching: {str(e)}")
         finally:
             self.after(0, self._search_complete)
 
     def _display_results(self, results):
-        if not results.get("image_list_with_metadata"):
+        if not results:
             self.status_var.set("No results found")
             return
 
-        self.status_var.set(f"Found {len(results['image_list_with_metadata'])} results")
+        self.status_var.set(f"Found {len(results)} results")
 
-        for idx, item in enumerate(results["image_list_with_metadata"]):
+        for idx, item in enumerate(results):
             row = idx // 3
             col = idx % 3
 
@@ -119,25 +118,15 @@ class SmarnApp(ctk.CTk):
             result_frame = ctk.CTkFrame(self.results_frame, corner_radius=5)
             result_frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
 
-            # Load and display image
-            image_path = item["image_path"]
-            image_name = os.path.basename(image_path)
-            local_path = SCREENSHOTS_DIR / image_name
-
-            # Download image if not exists
-            if not local_path.exists():
-                try:
-                    img_response = requests.get(f"{API_BASE_URL}/images/{image_name}")
-                    img_response.raise_for_status()
-                    with open(local_path, "wb") as f:
-                        f.write(img_response.content)
-                except Exception as e:
-                    print(f"Error downloading image: {e}")
+            try:
+                # Load and display image directly from the path
+                image_path = item["image_path"]
+                if not os.path.exists(image_path):
+                    print(f"Image not found at path: {image_path}")
                     continue
 
-            try:
                 # Load and resize image
-                img = Image.open(local_path)
+                img = Image.open(image_path)
                 img.thumbnail((300, 200))
                 photo = ImageTk.PhotoImage(img)
 
@@ -149,9 +138,7 @@ class SmarnApp(ctk.CTk):
                 img_label.pack(padx=5, pady=5)
 
                 # Add metadata
-                timestamp = datetime.fromisoformat(
-                    item["timestamp"].replace("Z", "+00:00")
-                )
+                timestamp = datetime.fromisoformat(item["timestamp"])
                 metadata_text = (
                     f"App: {item['application_name']}\n"
                     f"Time: {timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
