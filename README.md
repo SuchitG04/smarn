@@ -32,6 +32,3 @@ Forgot which website you saw those amazing shoes on? Know the description of a g
 
 4. **Storage Optimization**  
    By analyzing the similarity of successive screenshots, smarn adjusts its capture frequency dynamically, conserving storage space and compute power.
-
-5. **Convenient and Efficient**  
-   With a sleek Tauri-based interface and asynchronous services, smarn seamlessly integrates into your workflow without slowing you down.
