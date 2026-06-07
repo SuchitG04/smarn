@@ -1,7 +1,7 @@
 # smarn
+![Searching for 'red sneakers'](README_assets/sneakers.png)
 
 smarn is a local, open-source AI-powered feature for Linux that captures and stores screenshots of your activities every few seconds, allowing you to search for records of past activity using natural language.
-
 ## Intentions
 
 smarn is designed as a Linux-exclusive counterpart to Windows Recall (although this is not the sole identity of this piece of software).
@@ -21,7 +21,7 @@ Forgot which website you saw those amazing shoes on? Know the description of a g
 1. **Never Lose Track of What You Saw**  
    Forgot which website had that perfect pair of shoes? smarn can help you recall it by searching with a description like _"red sneakers website."_
 
-![Searching for 'red sneakers'](README_assets/sneakers.png)
+
 
 2. **Search Screenshots with Natural Language**  
    Want to find a YouTube video you were watching but only remember a vague description like _"a guy explaining quantum mechanics"?_ smarn can locate the relevant screenshots for you.
